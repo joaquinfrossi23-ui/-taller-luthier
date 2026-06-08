@@ -28,6 +28,14 @@ body{font-family:'Inter',sans-serif;background:var(--parchment);}
 .login-btn:hover{background:var(--wood-dark);}
 .login-error{color:#C0392B;font-size:12px;margin-top:8px;display:none;}
 
+/* MODAL CONFIRMAR BORRAR */
+.confirm-modal{background:var(--parchment);border-radius:12px;border:0.5px solid var(--border);width:340px;padding:1.5rem;text-align:center;}
+.confirm-modal h3{font-family:'Playfair Display',serif;font-size:17px;font-weight:400;color:var(--text-dark);margin-bottom:8px;}
+.confirm-modal p{font-size:13px;color:var(--text-muted);margin-bottom:1.25rem;}
+.confirm-btns{display:flex;gap:8px;justify-content:center;}
+.btn-danger{background:#C0392B;color:#fff;border-color:#C0392B;}
+.btn-danger:hover{background:#9B2D23;}
+
 .app{display:flex;height:100vh;min-height:620px;}
 .sidebar{width:220px;background:var(--wood-dark);display:flex;flex-direction:column;flex-shrink:0;}
 .sidebar-logo{padding:1.25rem 1rem 1rem;border-bottom:0.5px solid rgba(196,149,106,0.25);margin-bottom:0.5rem;}
@@ -296,7 +304,7 @@ tr:hover td{background:rgba(196,149,106,0.04);}
       <div id="section-presupuestos" class="section-hidden">
         <div class="card">
           <div class="card-header"><span>Presupuestos</span><button class="btn" onclick="openPresupuestoModal()"><i class="ti ti-plus"></i> Nuevo</button></div>
-          <table><thead><tr><th>#</th><th>Cliente</th><th>Descripción</th><th>Monto</th><th>Estado</th></tr></thead>
+          <table><thead><tr><th>#</th><th>Cliente</th><th>Descripción</th><th>Monto</th><th>Estado</th><th></th></tr></thead>
           <tbody id="presupuestos-table"><tr><td colspan="5" class="empty">Sin presupuestos.</td></tr></tbody></table>
         </div>
       </div>
@@ -491,6 +499,78 @@ tr:hover td{background:rgba(196,149,106,0.04);}
     </div>
   </div>
 </div>
+<!-- MODAL CONFIRMAR BORRAR -->
+<div class="modal-bg" id="modal-confirmar">
+  <div class="confirm-modal">
+    <h3 id="confirm-title">¿Eliminar?</h3>
+    <p id="confirm-msg">Esta acción no se puede deshacer.</p>
+    <div class="confirm-btns">
+      <button class="btn" onclick="closeModal('modal-confirmar')">Cancelar</button>
+      <button class="btn btn-danger" id="confirm-ok-btn">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR FABRICACIÓN -->
+<div class="modal-bg" id="modal-editar-fab">
+  <div class="modal">
+    <div class="modal-header"><h3>Editar fabricación</h3><button class="action-btn" onclick="closeModal('modal-editar-fab')"><i class="ti ti-x"></i></button></div>
+    <div class="modal-body">
+      <div class="row2">
+        <div class="field"><label>Tipo</label><select id="edit-f-tipo"><option>Guitarra eléctrica</option><option>Bajo eléctrico</option><option>Guitarra acústica</option><option>Otro</option></select></div>
+        <div class="field"><label>Destino</label><select id="edit-f-destino"><option value="encargo">Encargo de cliente</option><option value="stock">Para stock / venta</option></select></div>
+      </div>
+      <div class="field"><label>Cliente</label><select id="edit-f-cliente"><option value="">—</option></select></div>
+      <div class="field"><label>Modelo</label><input type="text" id="edit-f-modelo"></div>
+      <div class="row3">
+        <div class="field"><label>Cuerpo</label><input type="text" id="edit-f-cuerpo"></div>
+        <div class="field"><label>Mango</label><input type="text" id="edit-f-mango"></div>
+        <div class="field"><label>Diapasón</label><input type="text" id="edit-f-diapason"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Color</label><input type="text" id="edit-f-color"></div>
+        <div class="field"><label>Pastillas</label><input type="text" id="edit-f-pastillas"></div>
+      </div>
+      <div class="field"><label>Specs</label><textarea id="edit-f-specs"></textarea></div>
+      <div class="row2">
+        <div class="field"><label>Estado</label><select id="edit-f-estado"><option value="En proceso">En proceso</option><option value="Terminado">Terminado</option><option value="Entregado / Vendido">Entregado / Vendido</option></select></div>
+        <div class="field"><label>Precio ($)</label><input type="number" id="edit-f-precio"></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal('modal-editar-fab')">Cancelar</button><button class="btn btn-primary" onclick="guardarEditFab()">Guardar cambios</button></div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR PRESUPUESTO -->
+<div class="modal-bg" id="modal-editar-presupuesto">
+  <div class="modal">
+    <div class="modal-header"><h3>Editar presupuesto</h3><button class="action-btn" onclick="closeModal('modal-editar-presupuesto')"><i class="ti ti-x"></i></button></div>
+    <div class="modal-body">
+      <div class="field"><label>Cliente</label><select id="edit-p-cliente"><option value="">Seleccioná un cliente</option></select></div>
+      <div class="field"><label>Descripción</label><textarea id="edit-p-desc"></textarea></div>
+      <div class="row2">
+        <div class="field"><label>Monto ($)</label><input type="number" id="edit-p-monto"></div>
+        <div class="field"><label>Estado</label><select id="edit-p-estado"><option>Pendiente</option><option>Aprobado</option><option>Rechazado</option></select></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal('modal-editar-presupuesto')">Cancelar</button><button class="btn btn-primary" onclick="guardarEditPresupuesto()">Guardar cambios</button></div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR REMITO -->
+<div class="modal-bg" id="modal-editar-remito">
+  <div class="modal">
+    <div class="modal-header glam-mh"><h3>Editar remito</h3><button class="action-btn" onclick="closeModal('modal-editar-remito')"><i class="ti ti-x"></i></button></div>
+    <div class="modal-body">
+      <div class="field"><label>Fecha</label><input type="date" id="edit-r-fecha"></div>
+      <div class="field"><label>Instrumentos que retirás</label><textarea id="edit-r-retiro"></textarea></div>
+      <div class="field"><label>Instrumentos que devolvés</label><textarea id="edit-r-devuelvo"></textarea></div>
+      <div class="field"><label>Notas</label><textarea id="edit-r-notas"></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal('modal-editar-remito')">Cancelar</button><button class="btn btn-glam" onclick="guardarEditRemito()">Guardar cambios</button></div>
+  </div>
+</div>
+
 <!-- MODAL EDITAR STOCK -->
 <div class="modal-bg" id="modal-editar-stock">
   <div class="modal">
@@ -852,10 +932,98 @@ function guardarEditCliente(){
 }
 function changeFabEstado(id){const estados=['En proceso','Terminado','Entregado / Vendido'];const f=fabricaciones.find(f=>f.id===id);if(!f)return;f.estado=estados[(estados.indexOf(f.estado)+1)%estados.length];renderFab();scheduleSave();}
 function toggleComision(id){const o=ordenes.find(o=>o.id===id);if(!o)return;o.comisionPagada=!o.comisionPagada;renderGlam();scheduleSave();}
-function deleteOrden(id){if(!confirm('¿Eliminar esta orden?'))return;const o=ordenes.find(o=>o.id===id);if(o&&o.items)o.items.forEach(it=>{if(it.stockIdx!=null&&stock[it.stockIdx])stock[it.stockIdx].qty+=it.qty;});ordenes=ordenes.filter(o=>o.id!==id);renderAll();scheduleSave();}
-function deleteFab(id){if(!confirm('¿Eliminar?'))return;fabricaciones=fabricaciones.filter(f=>f.id!==id);renderFab();scheduleSave();}
-function deleteRemito(id){if(!confirm('¿Eliminar?'))return;remitos=remitos.filter(r=>r.id!==id);renderRemitos();scheduleSave();}
-function editarStock(i){
+
+// MODAL CONFIRMAR BORRAR
+function confirmar(titulo,mensaje,callback){
+  document.getElementById('confirm-title').textContent=titulo;
+  document.getElementById('confirm-msg').textContent=mensaje;
+  const btn=document.getElementById('confirm-ok-btn');
+  btn.onclick=()=>{closeModal('modal-confirmar');callback();};
+  document.getElementById('modal-confirmar').classList.add('open');
+}
+function deleteOrden(id){confirmar('¿Eliminar esta orden?','Esta acción no se puede deshacer.',()=>{const o=ordenes.find(o=>o.id===id);if(o&&o.items)o.items.forEach(it=>{if(it.stockIdx!=null&&stock[it.stockIdx])stock[it.stockIdx].qty+=it.qty;});ordenes=ordenes.filter(o=>o.id!==id);renderAll();scheduleSave();});}
+function deleteFab(id){confirmar('¿Eliminar este instrumento?','Esta acción no se puede deshacer.',()=>{fabricaciones=fabricaciones.filter(f=>f.id!==id);renderFab();scheduleSave();});}
+function deleteRemito(id){confirmar('¿Eliminar este remito?','Esta acción no se puede deshacer.',()=>{remitos=remitos.filter(r=>r.id!==id);renderRemitos();scheduleSave();});}
+function deletePresupuesto(id){confirmar('¿Eliminar este presupuesto?','Esta acción no se puede deshacer.',()=>{presupuestos=presupuestos.filter(p=>p.id!==id);renderPresupuestos();scheduleSave();});}
+function deleteCliente(idx){confirmar('¿Eliminar este cliente?','Esta acción no se puede deshacer.',()=>{clientes.splice(idx,1);renderClientes();scheduleSave();});}
+
+// EDITAR FABRICACIÓN
+function editarFab(id){
+  const f=fabricaciones.find(f=>f.id===id);if(!f)return;
+  populateClienteSelect('edit-f-cliente');
+  document.getElementById('edit-f-tipo').value=f.tipo;
+  document.getElementById('edit-f-destino').value=f.destino;
+  document.getElementById('edit-f-cliente').value=f.cliente!=='—'?f.cliente:'';
+  document.getElementById('edit-f-modelo').value=f.modelo||'';
+  document.getElementById('edit-f-cuerpo').value=f.cuerpo||'';
+  document.getElementById('edit-f-mango').value=f.mango||'';
+  document.getElementById('edit-f-diapason').value=f.diapason||'';
+  document.getElementById('edit-f-color').value=f.color||'';
+  document.getElementById('edit-f-pastillas').value=f.pastillas||'';
+  document.getElementById('edit-f-specs').value=f.specs||'';
+  document.getElementById('edit-f-estado').value=f.estado;
+  document.getElementById('edit-f-precio').value=f.precio||0;
+  document.getElementById('modal-editar-fab').dataset.id=id;
+  document.getElementById('modal-editar-fab').classList.add('open');
+}
+function guardarEditFab(){
+  const id=parseInt(document.getElementById('modal-editar-fab').dataset.id);
+  const f=fabricaciones.find(f=>f.id===id);if(!f)return;
+  const modelo=document.getElementById('edit-f-modelo').value;
+  if(!modelo){alert('Ingresá el modelo.');return;}
+  f.tipo=document.getElementById('edit-f-tipo').value;
+  f.destino=document.getElementById('edit-f-destino').value;
+  f.cliente=document.getElementById('edit-f-cliente').value||'—';
+  f.modelo=modelo;f.cuerpo=document.getElementById('edit-f-cuerpo').value;
+  f.mango=document.getElementById('edit-f-mango').value;f.diapason=document.getElementById('edit-f-diapason').value;
+  f.color=document.getElementById('edit-f-color').value;f.pastillas=document.getElementById('edit-f-pastillas').value;
+  f.specs=document.getElementById('edit-f-specs').value;f.estado=document.getElementById('edit-f-estado').value;
+  f.precio=parseFloat(document.getElementById('edit-f-precio').value)||0;
+  closeModal('modal-editar-fab');renderFab();scheduleSave();
+}
+
+// EDITAR PRESUPUESTO
+function editarPresupuesto(id){
+  const p=presupuestos.find(p=>p.id===id);if(!p)return;
+  populateClienteSelect('edit-p-cliente');
+  document.getElementById('edit-p-cliente').value=p.cliente;
+  document.getElementById('edit-p-desc').value=p.desc||'';
+  document.getElementById('edit-p-monto').value=p.monto||0;
+  document.getElementById('edit-p-estado').value=p.estado;
+  document.getElementById('modal-editar-presupuesto').dataset.id=id;
+  document.getElementById('modal-editar-presupuesto').classList.add('open');
+}
+function guardarEditPresupuesto(){
+  const id=parseInt(document.getElementById('modal-editar-presupuesto').dataset.id);
+  const p=presupuestos.find(p=>p.id===id);if(!p)return;
+  const cliente=document.getElementById('edit-p-cliente').value;
+  const desc=document.getElementById('edit-p-desc').value;
+  if(!cliente||!desc){alert('Completá cliente y descripción.');return;}
+  p.cliente=cliente;p.desc=desc;
+  p.monto=parseFloat(document.getElementById('edit-p-monto').value)||0;
+  p.estado=document.getElementById('edit-p-estado').value;
+  closeModal('modal-editar-presupuesto');renderPresupuestos();scheduleSave();
+}
+
+// EDITAR REMITO
+function editarRemito(id){
+  const r=remitos.find(r=>r.id===id);if(!r)return;
+  document.getElementById('edit-r-fecha').value=r.fecha;
+  document.getElementById('edit-r-retiro').value=r.retiro||'';
+  document.getElementById('edit-r-devuelvo').value=r.devuelvo||'';
+  document.getElementById('edit-r-notas').value=r.notas||'';
+  document.getElementById('modal-editar-remito').dataset.id=id;
+  document.getElementById('modal-editar-remito').classList.add('open');
+}
+function guardarEditRemito(){
+  const id=parseInt(document.getElementById('modal-editar-remito').dataset.id);
+  const r=remitos.find(r=>r.id===id);if(!r)return;
+  r.fecha=document.getElementById('edit-r-fecha').value;
+  r.retiro=document.getElementById('edit-r-retiro').value;
+  r.devuelvo=document.getElementById('edit-r-devuelvo').value;
+  r.notas=document.getElementById('edit-r-notas').value;
+  closeModal('modal-editar-remito');renderRemitos();scheduleSave();
+}
   const s=stock[i];if(!s)return;
   // Poblar select de categorías
   const sel=document.getElementById('edit-s-cat');
@@ -960,10 +1128,10 @@ function renderOrdenes(){
 }
 function renderGlam(){const g=ordenes.filter(o=>o.origen==='glam');const getMano=o=>(o.items||[]).filter(it=>it.tipo!=='material').reduce((s,it)=>s+it.qty*it.precio,0);document.getElementById('glam-stat-ordenes').textContent=g.filter(o=>o.estado!=='Entregado'&&o.estado!=='Cobrado').length;document.getElementById('glam-stat-comision').textContent='$'+g.filter(o=>!o.comisionPagada).reduce((s,o)=>s+getMano(o)*0.1,0).toLocaleString('es-AR',{maximumFractionDigits:0});document.getElementById('glam-stat-pagada').textContent='$'+g.filter(o=>o.comisionPagada).reduce((s,o)=>s+getMano(o)*0.1,0).toLocaleString('es-AR',{maximumFractionDigits:0});const tbody=document.getElementById('glam-ordenes-table');if(!g.length){tbody.innerHTML='<tr><td colspan="8" class="empty">No hay órdenes de GLAM.</td></tr>';}else{tbody.innerHTML=g.map(o=>{const mano=getMano(o);return`<tr><td style="color:var(--text-muted);font-size:12px;">#${o.id}</td><td style="font-weight:500;color:var(--text-dark);">${o.cliente}</td><td>${o.instrumento}</td><td>$${mano.toLocaleString('es-AR')}</td><td style="color:var(--glam);font-weight:500;">$${(mano*0.1).toLocaleString('es-AR',{maximumFractionDigits:0})}</td><td><button class="badge ${badgeClass(o.estado)}" onclick="changeEstado(${o.id})">${o.estado}</button></td><td><button class="badge ${o.comisionPagada?'badge-paid':'badge-unpaid'}" onclick="toggleComision(${o.id})">${o.comisionPagada?'Pagada':'Pendiente'}</button></td><td><button class="action-btn" onclick="openDetalle(${o.id})"><i class="ti ti-eye"></i></button></td></tr>`;}).join('');}}
 function renderStock(){const tbody=document.getElementById('stock-table');if(!stock.length){tbody.innerHTML='<tr><td colspan="8" class="empty">Sin ítems.</td></tr>';return;}tbody.innerHTML=stock.map((s,i)=>{const m=s.compra>0&&s.venta>0?Math.round((s.venta-s.compra)/s.compra*100):null;return`<tr><td style="font-weight:500;color:var(--text-dark);">${s.nombre}</td><td style="color:var(--text-muted);font-size:12px;">${s.cat}</td><td>${s.qty<=2?`<span class="badge badge-lowstock">${s.qty}</span>`:s.qty}</td><td style="color:var(--text-muted);">${s.compra?'$'+s.compra.toLocaleString('es-AR'):'—'}</td><td style="font-weight:500;">${s.venta?'$'+s.venta.toLocaleString('es-AR'):s.precio?'$'+s.precio.toLocaleString('es-AR'):'—'}</td><td>${m!==null?`<span class="margen-badge">+${m}%</span>`:'—'}</td><td style="display:flex;gap:3px;"><button class="action-btn" onclick="editarStock(${i})" title="Editar"><i class="ti ti-edit"></i></button><button class="action-btn" onclick="deleteStock(${i})"><i class="ti ti-trash"></i></button></td></tr>`;}).join('');}
-function renderClientes(){const tbody=document.getElementById('clientes-table');if(!clientes.length){tbody.innerHTML='<tr><td colspan="5" class="empty">Sin clientes.</td></tr>';return;}tbody.innerHTML=clientes.map((c,i)=>`<tr><td style="font-weight:500;color:var(--text-dark);">${c.nombre}</td><td>${c.tel||'—'}</td><td>${c.localidad||'—'}</td><td>${ordenes.filter(o=>o.cliente===c.nombre).length}</td><td><button class="action-btn" onclick="editarCliente(${i})" title="Editar"><i class="ti ti-edit"></i></button></td></tr>`).join('');}
-function renderFab(){const tbody=document.getElementById('fab-table');if(!fabricaciones.length){tbody.innerHTML='<tr><td colspan="8" class="empty">No hay instrumentos.</td></tr>';}else{tbody.innerHTML=fabricaciones.map(f=>`<tr><td style="color:var(--text-muted);font-size:12px;">#${f.id}</td><td style="font-weight:500;color:var(--text-dark);">${f.tipo}</td><td>${f.modelo}</td><td><span class="${f.destino==='encargo'?'tag-encargo':'tag-stock-dest'}">${f.destino==='encargo'?'Encargo':'Stock'}</span></td><td style="color:var(--text-muted);">${f.cliente!=='—'?f.cliente:'—'}</td><td><button class="badge ${badgeClass(f.estado)}" onclick="changeFabEstado(${f.id})">${f.estado}</button></td><td style="color:var(--text-muted);font-size:12px;">${f.fecha}</td><td><button class="action-btn" onclick="deleteFab(${f.id})"><i class="ti ti-trash"></i></button></td></tr>`).join('');}document.getElementById('fab-stat-progress').textContent=fabricaciones.filter(f=>f.estado==='En proceso').length;document.getElementById('fab-stat-done').textContent=fabricaciones.filter(f=>f.estado==='Terminado').length;document.getElementById('fab-stat-delivered').textContent=fabricaciones.filter(f=>f.estado==='Entregado / Vendido').length;document.getElementById('fab-stat-total').textContent=fabricaciones.length;}
-function renderPresupuestos(){const tbody=document.getElementById('presupuestos-table');if(!presupuestos.length){tbody.innerHTML='<tr><td colspan="5" class="empty">Sin presupuestos.</td></tr>';return;}tbody.innerHTML=presupuestos.map(p=>`<tr><td style="color:var(--text-muted);font-size:12px;">#${p.id}</td><td style="font-weight:500;color:var(--text-dark);">${p.cliente}</td><td style="color:var(--text-muted);">${p.desc}</td><td>$${p.monto.toLocaleString('es-AR')}</td><td><span class="badge ${p.estado==='Aprobado'?'badge-done':p.estado==='Rechazado'?'badge-pending':'badge-progress'}">${p.estado}</span></td></tr>`).join('');}
-function renderRemitos(){const tbody=document.getElementById('remitos-table');if(!remitos.length){tbody.innerHTML='<tr><td colspan="5" class="empty">No hay remitos.</td></tr>';return;}tbody.innerHTML=[...remitos].reverse().map(r=>`<tr><td style="font-weight:500;white-space:nowrap;">${r.fecha}</td><td style="font-size:12px;max-width:130px;">${r.retiro?r.retiro.replace(/\n/g,'<br>'):'—'}</td><td style="font-size:12px;max-width:130px;">${r.devuelvo?r.devuelvo.replace(/\n/g,'<br>'):'—'}</td><td style="font-size:12px;color:var(--text-muted);">${r.notas||'—'}</td><td><button class="action-btn" onclick="deleteRemito(${r.id})"><i class="ti ti-trash"></i></button></td></tr>`).join('');}
+function renderClientes(){const tbody=document.getElementById('clientes-table');if(!clientes.length){tbody.innerHTML='<tr><td colspan="5" class="empty">Sin clientes.</td></tr>';return;}tbody.innerHTML=clientes.map((c,i)=>`<tr><td style="font-weight:500;color:var(--text-dark);">${c.nombre}</td><td>${c.tel||'—'}</td><td>${c.localidad||'—'}</td><td>${ordenes.filter(o=>o.cliente===c.nombre).length}</td><td style="display:flex;gap:3px;"><button class="action-btn" onclick="editarCliente(${i})" title="Editar"><i class="ti ti-edit"></i></button><button class="action-btn" onclick="deleteCliente(${i})"><i class="ti ti-trash"></i></button></td></tr>`).join('');}
+function renderFab(){const tbody=document.getElementById('fab-table');if(!fabricaciones.length){tbody.innerHTML='<tr><td colspan="8" class="empty">No hay instrumentos.</td></tr>';}else{tbody.innerHTML=fabricaciones.map(f=>`<tr><td style="color:var(--text-muted);font-size:12px;">#${f.id}</td><td style="font-weight:500;color:var(--text-dark);">${f.tipo}</td><td>${f.modelo}</td><td><span class="${f.destino==='encargo'?'tag-encargo':'tag-stock-dest'}">${f.destino==='encargo'?'Encargo':'Stock'}</span></td><td style="color:var(--text-muted);">${f.cliente!=='—'?f.cliente:'—'}</td><td><button class="badge ${badgeClass(f.estado)}" onclick="changeFabEstado(${f.id})">${f.estado}</button></td><td style="color:var(--text-muted);font-size:12px;">${f.fecha}</td><td style="display:flex;gap:3px;"><button class="action-btn" onclick="editarFab(${f.id})" title="Editar"><i class="ti ti-edit"></i></button><button class="action-btn" onclick="deleteFab(${f.id})"><i class="ti ti-trash"></i></button></td></tr>`).join('');}document.getElementById('fab-stat-progress').textContent=fabricaciones.filter(f=>f.estado==='En proceso').length;document.getElementById('fab-stat-done').textContent=fabricaciones.filter(f=>f.estado==='Terminado').length;document.getElementById('fab-stat-delivered').textContent=fabricaciones.filter(f=>f.estado==='Entregado / Vendido').length;document.getElementById('fab-stat-total').textContent=fabricaciones.length;}
+function renderPresupuestos(){const tbody=document.getElementById('presupuestos-table');if(!presupuestos.length){tbody.innerHTML='<tr><td colspan="6" class="empty">Sin presupuestos.</td></tr>';return;}tbody.innerHTML=presupuestos.map(p=>`<tr><td style="color:var(--text-muted);font-size:12px;">#${p.id}</td><td style="font-weight:500;color:var(--text-dark);">${p.cliente}</td><td style="color:var(--text-muted);">${p.desc}</td><td>$${p.monto.toLocaleString('es-AR')}</td><td><span class="badge ${p.estado==='Aprobado'?'badge-done':p.estado==='Rechazado'?'badge-pending':'badge-progress'}">${p.estado}</span></td><td style="display:flex;gap:3px;"><button class="action-btn" onclick="editarPresupuesto(${p.id})" title="Editar"><i class="ti ti-edit"></i></button><button class="action-btn" onclick="deletePresupuesto(${p.id})"><i class="ti ti-trash"></i></button></td></tr>`).join('');}
+function renderRemitos(){const tbody=document.getElementById('remitos-table');if(!remitos.length){tbody.innerHTML='<tr><td colspan="6" class="empty">No hay remitos.</td></tr>';return;}tbody.innerHTML=[...remitos].reverse().map(r=>`<tr><td style="font-weight:500;white-space:nowrap;">${r.fecha}</td><td style="font-size:12px;max-width:130px;">${r.retiro?r.retiro.replace(/\n/g,'<br>'):'—'}</td><td style="font-size:12px;max-width:130px;">${r.devuelvo?r.devuelvo.replace(/\n/g,'<br>'):'—'}</td><td style="font-size:12px;color:var(--text-muted);">${r.notas||'—'}</td><td style="display:flex;gap:3px;"><button class="action-btn" onclick="editarRemito(${r.id})" title="Editar"><i class="ti ti-edit"></i></button><button class="action-btn" onclick="deleteRemito(${r.id})"><i class="ti ti-trash"></i></button></td></tr>`).join('');}
 document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
 
 // Exponer funciones globalmente para los onclick del HTML
@@ -977,7 +1145,9 @@ Object.assign(window,{
   toggleComision,deleteOrden,deleteFab,deleteRemito,deleteStock,printOrden,
   saveFab,saveCliente,saveStock,savePresupuesto,saveRemito,
   agregarCategoria,calcPrecioVenta,editarOrden,guardarEditOrden,editarCliente,guardarEditCliente,
-  editarStock,guardarEditStock,calcEditPrecioVenta
+  editarStock,guardarEditStock,calcEditPrecioVenta,confirmar,
+  editarFab,guardarEditFab,editarPresupuesto,guardarEditPresupuesto,
+  editarRemito,guardarEditRemito,deleteCliente,deletePresupuesto
 });
 
 // Auto-login si ya estaba autenticado
