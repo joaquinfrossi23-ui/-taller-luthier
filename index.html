@@ -689,7 +689,6 @@ function logout(){
   document.getElementById('login-input').value='';
   document.getElementById('login-error').style.display='none';
 }
-document.getElementById('login-input').addEventListener('keydown',e=>{if(e.key==='Enter')checkLogin();});
 
 // GUARDADO EN FIREBASE
 async function saveAll(){
@@ -1024,6 +1023,7 @@ function guardarEditRemito(){
   r.notas=document.getElementById('edit-r-notas').value;
   closeModal('modal-editar-remito');renderRemitos();scheduleSave();
 }
+function editarStock(i){
   const s=stock[i];if(!s)return;
   // Poblar select de categorías
   const sel=document.getElementById('edit-s-cat');
@@ -1057,7 +1057,7 @@ function guardarEditStock(){
   closeModal('modal-editar-stock');
   renderStock();scheduleSave();
 }
-function deleteStock(i){if(!confirm('¿Eliminar este producto?'))return;stock.splice(i,1);renderStock();scheduleSave();}
+function deleteStock(i){confirmar('¿Eliminar este producto?','Esta acción no se puede deshacer.',()=>{stock.splice(i,1);renderStock();scheduleSave();});}
 function printOrden(id){
   const o=ordenes.find(o=>o.id===id);if(!o)return;
   const c=clientes.find(c=>c.nombre===o.cliente);
@@ -1132,9 +1132,8 @@ function renderClientes(){const tbody=document.getElementById('clientes-table');
 function renderFab(){const tbody=document.getElementById('fab-table');if(!fabricaciones.length){tbody.innerHTML='<tr><td colspan="8" class="empty">No hay instrumentos.</td></tr>';}else{tbody.innerHTML=fabricaciones.map(f=>`<tr><td style="color:var(--text-muted);font-size:12px;">#${f.id}</td><td style="font-weight:500;color:var(--text-dark);">${f.tipo}</td><td>${f.modelo}</td><td><span class="${f.destino==='encargo'?'tag-encargo':'tag-stock-dest'}">${f.destino==='encargo'?'Encargo':'Stock'}</span></td><td style="color:var(--text-muted);">${f.cliente!=='—'?f.cliente:'—'}</td><td><button class="badge ${badgeClass(f.estado)}" onclick="changeFabEstado(${f.id})">${f.estado}</button></td><td style="color:var(--text-muted);font-size:12px;">${f.fecha}</td><td style="display:flex;gap:3px;"><button class="action-btn" onclick="editarFab(${f.id})" title="Editar"><i class="ti ti-edit"></i></button><button class="action-btn" onclick="deleteFab(${f.id})"><i class="ti ti-trash"></i></button></td></tr>`).join('');}document.getElementById('fab-stat-progress').textContent=fabricaciones.filter(f=>f.estado==='En proceso').length;document.getElementById('fab-stat-done').textContent=fabricaciones.filter(f=>f.estado==='Terminado').length;document.getElementById('fab-stat-delivered').textContent=fabricaciones.filter(f=>f.estado==='Entregado / Vendido').length;document.getElementById('fab-stat-total').textContent=fabricaciones.length;}
 function renderPresupuestos(){const tbody=document.getElementById('presupuestos-table');if(!presupuestos.length){tbody.innerHTML='<tr><td colspan="6" class="empty">Sin presupuestos.</td></tr>';return;}tbody.innerHTML=presupuestos.map(p=>`<tr><td style="color:var(--text-muted);font-size:12px;">#${p.id}</td><td style="font-weight:500;color:var(--text-dark);">${p.cliente}</td><td style="color:var(--text-muted);">${p.desc}</td><td>$${p.monto.toLocaleString('es-AR')}</td><td><span class="badge ${p.estado==='Aprobado'?'badge-done':p.estado==='Rechazado'?'badge-pending':'badge-progress'}">${p.estado}</span></td><td style="display:flex;gap:3px;"><button class="action-btn" onclick="editarPresupuesto(${p.id})" title="Editar"><i class="ti ti-edit"></i></button><button class="action-btn" onclick="deletePresupuesto(${p.id})"><i class="ti ti-trash"></i></button></td></tr>`).join('');}
 function renderRemitos(){const tbody=document.getElementById('remitos-table');if(!remitos.length){tbody.innerHTML='<tr><td colspan="6" class="empty">No hay remitos.</td></tr>';return;}tbody.innerHTML=[...remitos].reverse().map(r=>`<tr><td style="font-weight:500;white-space:nowrap;">${r.fecha}</td><td style="font-size:12px;max-width:130px;">${r.retiro?r.retiro.replace(/\n/g,'<br>'):'—'}</td><td style="font-size:12px;max-width:130px;">${r.devuelvo?r.devuelvo.replace(/\n/g,'<br>'):'—'}</td><td style="font-size:12px;color:var(--text-muted);">${r.notas||'—'}</td><td style="display:flex;gap:3px;"><button class="action-btn" onclick="editarRemito(${r.id})" title="Editar"><i class="ti ti-edit"></i></button><button class="action-btn" onclick="deleteRemito(${r.id})"><i class="ti ti-trash"></i></button></td></tr>`).join('');}
-document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
 
-// Exponer funciones globalmente para los onclick del HTML
+// Exponer funciones globalmente
 Object.assign(window,{
   checkLogin,logout,showSection,openOrdenModal,openGlamOrden,openFabModal,openClienteModal,
   openClienteModalDesdeOrden,openStockModal,openPresupuestoModal,openRemitoModal,closeModal,
@@ -1149,6 +1148,10 @@ Object.assign(window,{
   editarFab,guardarEditFab,editarPresupuesto,guardarEditPresupuesto,
   editarRemito,guardarEditRemito,deleteCliente,deletePresupuesto
 });
+
+// Event listeners
+document.getElementById('login-input').addEventListener('keydown',e=>{if(e.key==='Enter')checkLogin();});
+document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
 
 // Auto-login si ya estaba autenticado
 if(sessionStorage.getItem('taller-auth')==='ok'){
