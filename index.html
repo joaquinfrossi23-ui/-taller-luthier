@@ -673,10 +673,9 @@ tr:hover td{background:rgba(196,149,106,0.04);}
   <img id="lightbox-img" src="" alt="">
 </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
-
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
 const firebaseConfig = {
   apiKey: "AIzaSyCBQC12ekl791VBTjV4ISwz-lFXPCnb2Ts",
   authDomain: "taller-luthier.firebaseapp.com",
@@ -685,8 +684,8 @@ const firebaseConfig = {
   messagingSenderId: "381213576507",
   appId: "1:381213576507:web:af52121986c5e732aabb1e"
 };
-const firebaseApp = initializeApp(firebaseConfig);
-const db = getFirestore(firebaseApp);
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
 const PASSWORD = '2323';
 const DB_DOC = 'taller-data';
@@ -734,7 +733,7 @@ async function saveAll(){
   const ind=document.getElementById('save-indicator');
   ind.className='save-indicator saving';ind.innerHTML='<i class="ti ti-loader"></i> Guardando...';
   try{
-    await setDoc(doc(db,'taller',DB_DOC),{ordenes,clientes,stock,presupuestos,fabricaciones,remitos,ordenCounter,presupuestoCounter,fabCounter,remitoCounter,categorias});
+    await db.collection('taller').doc(DB_DOC).set({ordenes,clientes,stock,presupuestos,fabricaciones,remitos,ordenCounter,presupuestoCounter,fabCounter,remitoCounter,categorias});
     ind.className='save-indicator saved';ind.innerHTML='<i class="ti ti-check"></i> Datos guardados';
   }catch(e){
     console.error(e);
@@ -745,8 +744,8 @@ function scheduleSave(){if(saveTimeout)clearTimeout(saveTimeout);saveTimeout=set
 
 async function loadAll(){
   try{
-    const snap=await getDoc(doc(db,'taller',DB_DOC));
-    if(snap.exists()){
+    const snap=await db.collection('taller').doc(DB_DOC).get();
+    if(snap.exists){
       const d=snap.data();
       ordenes=d.ordenes||[];clientes=d.clientes||[];stock=d.stock||[];
       presupuestos=d.presupuestos||[];fabricaciones=d.fabricaciones||[];remitos=d.remitos||[];
@@ -1397,25 +1396,7 @@ function convertirAOrden(id){
 }
 function renderRemitos(){const tbody=document.getElementById('remitos-table');if(!remitos.length){tbody.innerHTML='<tr><td colspan="6" class="empty">No hay remitos.</td></tr>';return;}tbody.innerHTML=[...remitos].reverse().map(r=>`<tr><td style="font-weight:500;white-space:nowrap;">${r.fecha}</td><td style="font-size:12px;max-width:130px;">${r.retiro?r.retiro.replace(/\n/g,'<br>'):'—'}</td><td style="font-size:12px;max-width:130px;">${r.devuelvo?r.devuelvo.replace(/\n/g,'<br>'):'—'}</td><td style="font-size:12px;color:var(--text-muted);">${r.notas||'—'}</td><td style="display:flex;gap:3px;"><button class="action-btn" onclick="editarRemito(${r.id})" title="Editar"><i class="ti ti-edit"></i></button><button class="action-btn" onclick="deleteRemito(${r.id})"><i class="ti ti-trash"></i></button></td></tr>`).join('');}
 
-// Exponer funciones globalmente
-Object.assign(window,{
-  checkLogin,logout,showSection,openOrdenModal,openGlamOrden,openFabModal,openClienteModal,
-  openClienteModalDesdeOrden,openStockModal,openPresupuestoModal,openRemitoModal,closeModal,
-  toggleStockSelect,toggleClienteFab,addItemToNew,removeNewItem,editNewItem,
-  addItemToOrden,removeItemFromOrden,toggleDetStockSelect,
-  registrarCobro,deleteCobro,handleNewFotos,removeNewFoto,openLightbox,closeLightbox,
-  addFotoToOrden,deleteFotoFromOrden,saveOrden,openDetalle,changeEstado,changeFabEstado,
-  toggleComision,deleteOrden,deleteFab,deleteRemito,deleteStock,printOrden,
-  saveFab,saveCliente,saveStock,savePresupuesto,saveRemito,
-  agregarCategoria,calcPrecioVenta,editarOrden,guardarEditOrden,editarCliente,guardarEditCliente,
-  editarStock,guardarEditStock,calcEditPrecioVenta,confirmar,
-  editarFab,guardarEditFab,editarPresupuesto,guardarEditPresupuesto,
-  editarRemito,guardarEditRemito,deleteCliente,deletePresupuesto,convertirAOrden,
-  compartirWhatsApp,addItemToPresupuesto,removePresItem,openClienteModalDesdePresupuesto,
-  verPresupuesto,imprimirPresupuesto,compartirNativo
-});
-
-// Event listeners - los modules se ejecutan con defer, el DOM ya está listo
+// Event listeners - script normal, DOM disponible al final del body
 document.getElementById('login-input').addEventListener('keydown',e=>{if(e.key==='Enter')checkLogin();});
 document.getElementById('login-btn').addEventListener('click',()=>checkLogin());
 document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
