@@ -162,6 +162,7 @@ tr:hover td{background:rgba(196,149,106,0.04);}
 .precio-resultado span{font-family:'Playfair Display',serif;font-size:18px;color:var(--text-dark);}
 .cat-add-row{display:flex;gap:8px;align-items:center;}
 .cat-add-row input{flex:1;font-size:13px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--cream);color:var(--text-dark);padding:8px 10px;}
+.tag-material-glam{display:inline-block;padding:2px 6px;border-radius:4px;font-size:10px;background:var(--glam-light);color:var(--glam);border:0.5px solid var(--glam-border);}
 .margen-badge{font-size:11px;color:#2A5A2A;background:#E8F2E8;padding:2px 7px;border-radius:4px;border:0.5px solid #7AB87A;}
 .filtros-bar{display:flex;align-items:center;gap:5px;background:var(--cream);border:0.5px solid var(--border-light);border-radius:8px;padding:7px 10px;margin-bottom:1rem;}
 .filtros-bar input[type="text"]{flex:1 1 auto;min-width:120px;font-size:12px;font-family:'Inter',sans-serif;border:0.5px solid var(--border);border-radius:6px;background:var(--parchment);color:var(--text-dark);padding:5px 8px;height:30px;}
@@ -358,7 +359,7 @@ tr:hover td{background:rgba(196,149,106,0.04);}
       <div class="items-section">
         <h4>Trabajos y materiales</h4>
         <div class="item-add-grid">
-          <select id="new-tipo" onchange="toggleStockSelect('new')"><option value="trabajo">Trabajo</option><option value="material">Material stock</option><option value="material-libre">Material libre</option></select>
+          <select id="new-tipo" onchange="toggleStockSelect('new')"><option value="trabajo">Trabajo</option><option value="material">Material stock</option><option value="material-libre">Material libre</option><option value="material-glam">Material GLAM</option></select>
           <div id="new-desc-wrap"><input type="text" id="new-desc" placeholder="Descripción..."></div>
           <div id="new-stock-wrap" style="display:none;"><select id="new-stock-sel"></select></div>
           <input type="number" id="new-qty" placeholder="Cant." min="1" value="1" style="width:64px;">
@@ -782,11 +783,17 @@ function calcCobrado(cobros){return(cobros||[]).reduce((s,c)=>s+c.monto,0);}
 function badgeClass(e){if(e==='Cobrado')return 'badge-cobrado';return e==='Pendiente'?'badge-pending':e==='En proceso'?'badge-progress':e==='Listo'||e==='Terminado'?'badge-done':'badge-delivered';}
 function addItemToNew(){const tipo=document.getElementById('new-tipo').value,qty=parseInt(document.getElementById('new-qty').value)||1,precio=parseFloat(document.getElementById('new-precio').value)||0;let desc='',stockIdx=null;if(tipo==='material'){const idx=parseInt(document.getElementById('new-stock-sel').value);if(isNaN(idx)||!stock[idx]){alert('Seleccioná un producto.');return;}if(stock[idx].qty<qty){alert('Stock insuficiente.');return;}desc=stock[idx].nombre;stockIdx=idx;}else{desc=document.getElementById('new-desc').value.trim();if(!desc){alert('Ingresá descripción.');return;}}newItems.push({tipo,desc,qty,precio,stockIdx});renderNewItems();document.getElementById('new-desc').value='';document.getElementById('new-precio').value='';document.getElementById('new-qty').value=1;document.getElementById('new-stock-sel').value='';}
 function removeNewItem(i){newItems.splice(i,1);renderNewItems();}
+function itemTag(tipo){
+  if(tipo==='trabajo')return '<span class="tag-trabajo">Trabajo</span>';
+  if(tipo==='material')return '<span class="tag-material">Material</span>';
+  if(tipo==='material-glam')return '<span class="tag-material-glam">GLAM</span>';
+  return '<span class="tag-material">Material</span>';
+}
 function renderNewItems(){
   const list=document.getElementById('new-items-list'),bar=document.getElementById('new-total-bar');
   if(!newItems.length){list.innerHTML='<p style="font-size:12px;color:var(--text-muted);font-style:italic;padding:4px 0;">Sin ítems.</p>';bar.style.display='none';return;}
   list.innerHTML=newItems.map((it,i)=>`<div class="item-row" ondblclick="editNewItem(${i})" title="Doble clic para editar" style="cursor:pointer;">
-    <span class="${it.tipo==='trabajo'?'tag-trabajo':'tag-material'}">${it.tipo==='trabajo'?'Trabajo':'Material'}</span>
+    ${itemTag(it.tipo)}
     <span class="item-row-desc">${it.desc}${it.qty>1?` × ${it.qty}`:''}</span>
     <span class="item-row-price">$${(it.qty*it.precio).toLocaleString('es-AR')}</span>
     <button class="action-btn" onclick="removeNewItem(${i})"><i class="ti ti-trash"></i></button>
@@ -845,7 +852,7 @@ function openDetalle(id){
     </div></div>
     <div class="items-section"><h4>Trabajos y materiales</h4>
       <div class="item-add-grid">
-        <select id="det-tipo" onchange="toggleDetStockSelect()"><option value="trabajo">Trabajo</option><option value="material">Material stock</option><option value="material-libre">Material libre</option></select>
+        <select id="det-tipo" onchange="toggleDetStockSelect()"><option value="trabajo">Trabajo</option><option value="material">Material stock</option><option value="material-libre">Material libre</option><option value="material-glam">Material GLAM</option></select>
         <div id="det-desc-wrap"><input type="text" id="det-desc" placeholder="Descripción..."></div>
         <div id="det-stock-wrap" style="display:none;"><select id="det-stock-sel">${stock.map((s,i)=>`<option value="${i}">${s.nombre} (${s.qty} u.) — $${s.venta||s.precio||0}</option>`).join('')}</select></div>
         <input type="number" id="det-qty" value="1" min="1" style="width:64px;">
@@ -929,6 +936,29 @@ function guardarEditCliente(){
   closeModal('modal-editar-cliente');
   renderAll();scheduleSave();
 }
+// CONVERTIR PRESUPUESTO A ORDEN
+function convertirAOrden(id){
+  const p=presupuestos.find(p=>p.id===id);if(!p)return;
+  if(!confirm(`¿Convertir el presupuesto de ${p.cliente} en una orden de trabajo?`))return;
+  ordenes.push({
+    id:ordenCounter++,
+    origen:'glam',
+    cliente:p.cliente,
+    instrumento:p.desc,
+    marca:'',
+    estado:'Pendiente',
+    obs:`Generado desde presupuesto #${p.id}`,
+    fotos:[],
+    items:[{tipo:'trabajo',desc:p.desc,qty:1,precio:p.monto,stockIdx:null}],
+    cobros:[],
+    fecha:new Date().toLocaleDateString('es-AR')
+  });
+  p.estado='Aprobado';
+  renderAll();scheduleSave();
+  showSection('ordenes');
+  alert(`¡Orden creada! Se abrió la sección de órdenes.`);
+}
+
 function changeFabEstado(id){const estados=['En proceso','Terminado','Entregado / Vendido'];const f=fabricaciones.find(f=>f.id===id);if(!f)return;f.estado=estados[(estados.indexOf(f.estado)+1)%estados.length];renderFab();scheduleSave();}
 function toggleComision(id){const o=ordenes.find(o=>o.id===id);if(!o)return;o.comisionPagada=!o.comisionPagada;renderGlam();scheduleSave();}
 
@@ -1130,7 +1160,7 @@ function renderGlam(){const g=ordenes.filter(o=>o.origen==='glam');const getMano
 function renderStock(){const tbody=document.getElementById('stock-table');if(!stock.length){tbody.innerHTML='<tr><td colspan="8" class="empty">Sin ítems.</td></tr>';return;}tbody.innerHTML=stock.map((s,i)=>{const m=s.compra>0&&s.venta>0?Math.round((s.venta-s.compra)/s.compra*100):null;return`<tr><td style="font-weight:500;color:var(--text-dark);">${s.nombre}</td><td style="color:var(--text-muted);font-size:12px;">${s.cat}</td><td>${s.qty<=2?`<span class="badge badge-lowstock">${s.qty}</span>`:s.qty}</td><td style="color:var(--text-muted);">${s.compra?'$'+s.compra.toLocaleString('es-AR'):'—'}</td><td style="font-weight:500;">${s.venta?'$'+s.venta.toLocaleString('es-AR'):s.precio?'$'+s.precio.toLocaleString('es-AR'):'—'}</td><td>${m!==null?`<span class="margen-badge">+${m}%</span>`:'—'}</td><td style="display:flex;gap:3px;"><button class="action-btn" onclick="editarStock(${i})" title="Editar"><i class="ti ti-edit"></i></button><button class="action-btn" onclick="deleteStock(${i})"><i class="ti ti-trash"></i></button></td></tr>`;}).join('');}
 function renderClientes(){const tbody=document.getElementById('clientes-table');if(!clientes.length){tbody.innerHTML='<tr><td colspan="5" class="empty">Sin clientes.</td></tr>';return;}tbody.innerHTML=clientes.map((c,i)=>`<tr><td style="font-weight:500;color:var(--text-dark);">${c.nombre}</td><td>${c.tel||'—'}</td><td>${c.localidad||'—'}</td><td>${ordenes.filter(o=>o.cliente===c.nombre).length}</td><td style="display:flex;gap:3px;"><button class="action-btn" onclick="editarCliente(${i})" title="Editar"><i class="ti ti-edit"></i></button><button class="action-btn" onclick="deleteCliente(${i})"><i class="ti ti-trash"></i></button></td></tr>`).join('');}
 function renderFab(){const tbody=document.getElementById('fab-table');if(!fabricaciones.length){tbody.innerHTML='<tr><td colspan="8" class="empty">No hay instrumentos.</td></tr>';}else{tbody.innerHTML=fabricaciones.map(f=>`<tr><td style="color:var(--text-muted);font-size:12px;">#${f.id}</td><td style="font-weight:500;color:var(--text-dark);">${f.tipo}</td><td>${f.modelo}</td><td><span class="${f.destino==='encargo'?'tag-encargo':'tag-stock-dest'}">${f.destino==='encargo'?'Encargo':'Stock'}</span></td><td style="color:var(--text-muted);">${f.cliente!=='—'?f.cliente:'—'}</td><td><button class="badge ${badgeClass(f.estado)}" onclick="changeFabEstado(${f.id})">${f.estado}</button></td><td style="color:var(--text-muted);font-size:12px;">${f.fecha}</td><td style="display:flex;gap:3px;"><button class="action-btn" onclick="editarFab(${f.id})" title="Editar"><i class="ti ti-edit"></i></button><button class="action-btn" onclick="deleteFab(${f.id})"><i class="ti ti-trash"></i></button></td></tr>`).join('');}document.getElementById('fab-stat-progress').textContent=fabricaciones.filter(f=>f.estado==='En proceso').length;document.getElementById('fab-stat-done').textContent=fabricaciones.filter(f=>f.estado==='Terminado').length;document.getElementById('fab-stat-delivered').textContent=fabricaciones.filter(f=>f.estado==='Entregado / Vendido').length;document.getElementById('fab-stat-total').textContent=fabricaciones.length;}
-function renderPresupuestos(){const tbody=document.getElementById('presupuestos-table');if(!presupuestos.length){tbody.innerHTML='<tr><td colspan="6" class="empty">Sin presupuestos.</td></tr>';return;}tbody.innerHTML=presupuestos.map(p=>`<tr><td style="color:var(--text-muted);font-size:12px;">#${p.id}</td><td style="font-weight:500;color:var(--text-dark);">${p.cliente}</td><td style="color:var(--text-muted);">${p.desc}</td><td>$${p.monto.toLocaleString('es-AR')}</td><td><span class="badge ${p.estado==='Aprobado'?'badge-done':p.estado==='Rechazado'?'badge-pending':'badge-progress'}">${p.estado}</span></td><td style="display:flex;gap:3px;"><button class="action-btn" onclick="editarPresupuesto(${p.id})" title="Editar"><i class="ti ti-edit"></i></button><button class="action-btn" onclick="deletePresupuesto(${p.id})"><i class="ti ti-trash"></i></button></td></tr>`).join('');}
+function renderPresupuestos(){const tbody=document.getElementById('presupuestos-table');if(!presupuestos.length){tbody.innerHTML='<tr><td colspan="6" class="empty">Sin presupuestos.</td></tr>';return;}tbody.innerHTML=presupuestos.map(p=>`<tr><td style="color:var(--text-muted);font-size:12px;">#${p.id}</td><td style="font-weight:500;color:var(--text-dark);">${p.cliente}</td><td style="color:var(--text-muted);">${p.desc}</td><td>$${p.monto.toLocaleString('es-AR')}</td><td><span class="badge ${p.estado==='Aprobado'?'badge-done':p.estado==='Rechazado'?'badge-pending':'badge-progress'}">${p.estado}</span></td><td style="display:flex;gap:3px;">${p.estado==='Aprobado'?`<button class="action-btn" onclick="convertirAOrden(${p.id})" title="Convertir a orden" style="color:#2A5A2A;"><i class="ti ti-arrow-right-circle"></i></button>`:''}><button class="action-btn" onclick="editarPresupuesto(${p.id})" title="Editar"><i class="ti ti-edit"></i></button><button class="action-btn" onclick="deletePresupuesto(${p.id})"><i class="ti ti-trash"></i></button></td></tr>`).join('');}
 function renderRemitos(){const tbody=document.getElementById('remitos-table');if(!remitos.length){tbody.innerHTML='<tr><td colspan="6" class="empty">No hay remitos.</td></tr>';return;}tbody.innerHTML=[...remitos].reverse().map(r=>`<tr><td style="font-weight:500;white-space:nowrap;">${r.fecha}</td><td style="font-size:12px;max-width:130px;">${r.retiro?r.retiro.replace(/\n/g,'<br>'):'—'}</td><td style="font-size:12px;max-width:130px;">${r.devuelvo?r.devuelvo.replace(/\n/g,'<br>'):'—'}</td><td style="font-size:12px;color:var(--text-muted);">${r.notas||'—'}</td><td style="display:flex;gap:3px;"><button class="action-btn" onclick="editarRemito(${r.id})" title="Editar"><i class="ti ti-edit"></i></button><button class="action-btn" onclick="deleteRemito(${r.id})"><i class="ti ti-trash"></i></button></td></tr>`).join('');}
 
 // Exponer funciones globalmente
@@ -1146,7 +1176,7 @@ Object.assign(window,{
   agregarCategoria,calcPrecioVenta,editarOrden,guardarEditOrden,editarCliente,guardarEditCliente,
   editarStock,guardarEditStock,calcEditPrecioVenta,confirmar,
   editarFab,guardarEditFab,editarPresupuesto,guardarEditPresupuesto,
-  editarRemito,guardarEditRemito,deleteCliente,deletePresupuesto
+  editarRemito,guardarEditRemito,deleteCliente,deletePresupuesto,convertirAOrden
 });
 
 // Event listeners
