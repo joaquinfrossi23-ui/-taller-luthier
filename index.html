@@ -212,8 +212,8 @@ tr:hover td{background:rgba(196,149,106,0.04);}
   <div class="login-box">
     <div class="login-logo">Joaquin Rossi</div>
     <div class="login-sub">Luthier · Sistema de taller</div>
-    <input type="password" id="login-input" placeholder="Contraseña" onkeydown="if(event.key==='Enter')checkLogin()">
-    <button class="login-btn" onclick="checkLogin()">Ingresar</button>
+    <input type="password" id="login-input" placeholder="Contraseña">
+    <button class="login-btn" id="login-btn">Ingresar</button>
     <div class="login-error" id="login-error">Contraseña incorrecta</div>
   </div>
 </div>
@@ -1416,16 +1416,18 @@ Object.assign(window,{
   verPresupuesto,imprimirPresupuesto,compartirNativo
 });
 
-// Event listeners
-document.getElementById('login-input').addEventListener('keydown',e=>{if(e.key==='Enter')checkLogin();});
-document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
-
-// Auto-login si ya estaba autenticado
-if(sessionStorage.getItem('taller-auth')==='ok'){
-  document.getElementById('login-screen').style.display='none';
-  document.getElementById('main-app').style.display='flex';
-  loadAll();
-}
+// Event listeners - esperamos que el DOM esté listo
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.getElementById('login-input').addEventListener('keydown',e=>{if(e.key==='Enter')checkLogin();});
+  document.getElementById('login-btn').addEventListener('click',checkLogin);
+  document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+  // Auto-login si ya estaba autenticado
+  if(sessionStorage.getItem('taller-auth')==='ok'){
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('main-app').style.display='flex';
+    loadAll();
+  }
+});
 </script>
 </body>
 </html>
