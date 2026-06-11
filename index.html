@@ -309,7 +309,7 @@ tr:hover td{background:rgba(196,149,106,0.04);}
         <!-- Vista normal -->
         <div id="stock-vista-normal" class="card">
           <div class="card-header"><span>Materiales y accesorios</span><button class="btn" onclick="openStockModal()"><i class="ti ti-plus"></i> Agregar</button></div>
-          <table><thead><tr><th>Descripción</th><th>Categoría</th><th>Marca</th><th>Stock</th><th>P. Compra</th><th>P. Venta</th><th>Margen</th><th></th></tr></thead>
+          <table><thead><tr><th>Categoría</th><th>Marca</th><th>Descripción</th><th>Stock</th><th>P. Compra</th><th>P. Venta</th><th>Margen</th><th></th></tr></thead>
           <tbody id="stock-table"><tr><td colspan="7" class="empty">Sin ítems.</td></tr></tbody></table>
         </div>
 
@@ -1390,10 +1390,17 @@ function openDetalle(id){
       ${items.length?`<div class="total-bar"><div><div class="total-bar-label">Trabajo: $${tT.toLocaleString('es-AR')} · Materiales: $${tM.toLocaleString('es-AR')}</div></div><span class="total-bar-amount">Total $${total.toLocaleString('es-AR')}</span></div>`:''}
     </div>
     <div class="items-section" style="margin-top:8px;"><h4>Cobros</h4>
-      ${total>0?`<div class="cobro-resumen"><div class="cobro-stat"><label>Total</label><span>$${total.toLocaleString('es-AR')}</span></div><div class="cobro-stat"><label>Cobrado</label><span class="cobrado">$${cobrado.toLocaleString('es-AR')}</span></div><div class="cobro-stat"><label>Saldo</label><span class="${saldo>0?'pendiente':'cobrado'}">$${saldo.toLocaleString('es-AR')}</span></div></div>
+      ${o.estado==='Cobrado'?
+        `<div style="background:#E8F2E8;border:0.5px solid #7AB87A;border-radius:8px;padding:12px;text-align:center;">
+          <i class="ti ti-circle-check" style="font-size:24px;color:#2A5A2A;display:block;margin-bottom:4px;"></i>
+          <p style="font-size:14px;font-weight:600;color:#2A5A2A;">Orden completamente cobrada</p>
+          <p style="font-size:12px;color:#2A5A2A;margin-top:2px;">Total cobrado: $${calcCobrado(cobros).toLocaleString('es-AR')}</p>
+        </div>`:
+        total>0?`<div class="cobro-resumen"><div class="cobro-stat"><label>Total</label><span>$${total.toLocaleString('es-AR')}</span></div><div class="cobro-stat"><label>Cobrado</label><span class="cobrado">$${cobrado.toLocaleString('es-AR')}</span></div><div class="cobro-stat"><label>Saldo</label><span class="${saldo>0?'pendiente':'cobrado'}">$${saldo.toLocaleString('es-AR')}</span></div></div>
       <div class="cobro-bar"><div class="cobro-bar-fill" style="width:${pct}%"></div></div>
       <div class="cobro-list">${cobros.length?cobros.map((c,i)=>`<div class="cobro-row"><div><span>$${c.monto.toLocaleString('es-AR')}</span> <small>— ${c.fecha}</small></div><button class="action-btn" onclick="deleteCobro(${o.id},${i})"><i class="ti ti-trash"></i></button></div>`).join(''):'<p style="font-size:12px;color:var(--text-muted);font-style:italic;padding:4px 0;">Sin pagos aún.</p>'}</div>
-      ${saldo>0?`<div class="cobro-add-row"><input type="number" id="cobro-monto-${o.id}" placeholder="Monto a registrar..." min="0"><span style="font-size:12px;color:var(--text-muted);white-space:nowrap;">Saldo: $${saldo.toLocaleString('es-AR')}</span><button class="btn btn-green" onclick="registrarCobro(${o.id})"><i class="ti ti-coin"></i> Registrar cobro</button></div>`:'<p style="font-size:12px;color:#2A5A2A;font-weight:500;padding:4px 0;"><i class="ti ti-check"></i> Completamente cobrada</p>'}`:'<p style="font-size:12px;color:var(--text-muted);font-style:italic;">Agregá ítems para habilitar cobros.</p>'}
+      ${saldo>0?`<div class="cobro-add-row"><input type="number" id="cobro-monto-${o.id}" placeholder="Monto a registrar..." min="0"><span style="font-size:12px;color:var(--text-muted);white-space:nowrap;">Saldo: $${saldo.toLocaleString('es-AR')}</span><button class="btn btn-green" onclick="registrarCobro(${o.id})"><i class="ti ti-coin"></i> Registrar cobro</button></div>`:'<p style="font-size:12px;color:#2A5A2A;font-weight:500;padding:4px 0;"><i class="ti ti-check"></i> Completamente cobrada</p>'}`:
+        '<p style="font-size:12px;color:var(--text-muted);font-style:italic;">Agregá ítems para habilitar cobros.</p>'}
     </div>
     ${o.obs?`<div class="det-section"><h4>Observaciones</h4><p style="font-size:13px;color:var(--text-mid);">${o.obs}</p></div>`:''}
     <div class="det-section"><h4>Fotos</h4>
@@ -1674,7 +1681,10 @@ function printOrden(id){
   const fotosHtml=(o.fotos&&o.fotos.length)?`<div class="print-section"><div class="print-section-title">Fotos</div><div class="print-fotos">${o.fotos.map(src=>`<img src="${src}">`).join('')}</div></div>`:'';
   const itemsHtml=items.length?`<div class="print-section"><div class="print-section-title">Trabajos y materiales</div>
     <table class="print-items-table"><thead><tr><th>Tipo</th><th>Descripción</th><th>Cant.</th><th>Precio u.</th><th>Subtotal</th></tr></thead>
-    <tbody>${items.map(it=>`<tr><td>${it.tipo==='trabajo'?'Trabajo':'Material'}</td><td>${it.desc}</td><td>${it.qty}</td><td>$${it.precio.toLocaleString('es-AR')}</td><td>$${(it.qty*it.precio).toLocaleString('es-AR')}</td></tr>`).join('')}</tbody></table>
+    <tbody>${items.map(it=>{
+      if(it.tipo==='material-glam')return`<tr><td style="color:#7B3FA0;">GLAM</td><td>${it.desc}</td><td>${it.qty}</td><td style="color:#7B3FA0;font-size:11px;">A pagar en GLAM</td><td style="color:#7B3FA0;font-size:11px;">Al retirar</td></tr>`;
+      return`<tr><td>${it.tipo==='trabajo'?'Trabajo':'Material'}</td><td>${it.desc}</td><td>${it.qty}</td><td>$${it.precio.toLocaleString('es-AR')}</td><td>$${(it.qty*it.precio).toLocaleString('es-AR')}</td></tr>`;
+    }).join('')}</tbody></table>
     <div style="display:flex;justify-content:space-between;font-size:12px;color:#8B7355;margin-top:6px;"><span>Trabajo: $${tT.toLocaleString('es-AR')}</span><span>Materiales: $${tM.toLocaleString('es-AR')}</span></div>
     <div class="print-total-row"><span>Total</span><span>$${total.toLocaleString('es-AR')}</span></div>
     ${cobrado>0?`<div style="font-size:12px;color:#8B7355;margin-top:4px;">Cobrado: $${cobrado.toLocaleString('es-AR')}</div>`:''}
@@ -1694,8 +1704,7 @@ function printOrden(id){
       </div></div>
     ${itemsHtml}${fotosHtml}
     ${o.obs?`<div class="print-section"><div class="print-section-title">Observaciones</div><p style="font-size:13px;color:#1C0F05;">${o.obs}</p></div>`:''}
-    <div class="print-footer"><p style="font-family:'Great Vibes',cursive;font-size:22px;color:#2C1A0E;">Joaquin Rossi · Luthier</p>
-    <div class="print-firma"><div class="linea"></div><p style="font-size:11px;color:#8B7355;">Firma del cliente</p></div></div>`;
+    <div class="print-footer"><p style="font-family:'Great Vibes',cursive;font-size:22px;color:#2C1A0E;">Joaquin Rossi · Luthier</p></div>`;
   closeModal('modal-detalle');document.getElementById('modal-print').classList.add('open');
 }
 function saveFab(){const tipo=document.getElementById('f-tipo').value,destino=document.getElementById('f-destino').value,modelo=document.getElementById('f-modelo').value;if(!modelo){alert('Ingresá el modelo.');return;}const cliente=destino==='encargo'?document.getElementById('f-cliente').value:'—';if(destino==='encargo'&&!cliente){alert('Seleccioná el cliente.');return;}fabricaciones.push({id:fabCounter++,tipo,destino,cliente,modelo,cuerpo:document.getElementById('f-cuerpo').value,mango:document.getElementById('f-mango').value,diapason:document.getElementById('f-diapason').value,color:document.getElementById('f-color').value,pastillas:document.getElementById('f-pastillas').value,specs:document.getElementById('f-specs').value,estado:document.getElementById('f-estado-fab').value,precio:parseFloat(document.getElementById('f-precio').value)||0,fecha:new Date().toLocaleDateString('es-AR')});renderFab();closeModal('modal-fab');scheduleSave();document.querySelectorAll('#modal-fab input,#modal-fab textarea,#modal-fab select').forEach(el=>{if(el.tagName==='SELECT')el.selectedIndex=0;else el.value='';});document.getElementById('f-cliente-field').style.display='flex';}
@@ -1857,26 +1866,25 @@ function renderStock(){
     const i=s._idx;
     const m=s.compra>0&&s.venta>0?Math.round((s.venta-s.compra)/s.compra*100):null;
     if(s.variantes&&s.variantes.length){
-      const totalQty=s.variantes.reduce((t,v)=>t+v.qty,0);
       const variantesTag=s.variantes.map(v=>`<span style="display:inline-block;background:var(--cream-dark);border:0.5px solid var(--border-light);border-radius:4px;padding:2px 6px;font-size:11px;margin:1px;">${v.nombre}: ${v.qty<=2?`<span style="color:#C0392B;font-weight:600;">${v.qty}</span>`:v.qty}</span>`).join('');
       rows.push(`<tr>
-        <td style="font-weight:500;color:var(--text-dark);">${s.nombre}</td>
-        <td style="color:var(--text-muted);font-size:12px;">${s.cat}</td>
+        <td style="font-weight:700;color:var(--text-dark);">${s.cat}</td>
         <td style="color:var(--text-muted);font-size:12px;">${s.marca||'—'}</td>
+        <td style="color:var(--text-muted);font-size:12px;">${s.nombre}</td>
         <td>${variantesTag}</td>
-        <td style="color:var(--text-muted);">${s.compra?'$'+s.compra.toLocaleString('es-AR'):'—'}</td>
-        <td style="font-weight:500;">${s.venta?'$'+s.venta.toLocaleString('es-AR'):'—'}</td>
+        <td style="color:var(--text-muted);font-size:12px;">${s.compra?'$'+s.compra.toLocaleString('es-AR'):'—'}</td>
+        <td style="font-weight:500;font-size:12px;">${s.venta?'$'+s.venta.toLocaleString('es-AR'):'—'}</td>
         <td>${m!==null?`<span class="margen-badge">+${m}%</span>`:'—'}</td>
         <td style="display:flex;gap:3px;"><button class="action-btn" onclick="editarStock(${i})" title="Editar"><i class="ti ti-edit"></i></button><button class="action-btn" onclick="deleteStock(${i})"><i class="ti ti-trash"></i></button></td>
       </tr>`);
     } else {
       rows.push(`<tr>
-        <td style="font-weight:500;color:var(--text-dark);">${s.nombre}</td>
-        <td style="color:var(--text-muted);font-size:12px;">${s.cat}</td>
+        <td style="font-weight:700;color:var(--text-dark);">${s.cat}</td>
         <td style="color:var(--text-muted);font-size:12px;">${s.marca||'—'}</td>
+        <td style="color:var(--text-muted);font-size:12px;">${s.nombre}</td>
         <td>${s.qty<=2?`<span class="badge badge-lowstock">${s.qty}</span>`:s.qty}</td>
-        <td style="color:var(--text-muted);">${s.compra?'$'+s.compra.toLocaleString('es-AR'):'—'}</td>
-        <td style="font-weight:500;">${s.venta?'$'+s.venta.toLocaleString('es-AR'):s.precio?'$'+s.precio.toLocaleString('es-AR'):'—'}</td>
+        <td style="color:var(--text-muted);font-size:12px;">${s.compra?'$'+s.compra.toLocaleString('es-AR'):'—'}</td>
+        <td style="font-weight:500;font-size:12px;">${s.venta?'$'+s.venta.toLocaleString('es-AR'):s.precio?'$'+s.precio.toLocaleString('es-AR'):'—'}</td>
         <td>${m!==null?`<span class="margen-badge">+${m}%</span>`:'—'}</td>
         <td style="display:flex;gap:3px;"><button class="action-btn" onclick="editarStock(${i})" title="Editar"><i class="ti ti-edit"></i></button><button class="action-btn" onclick="deleteStock(${i})"><i class="ti ti-trash"></i></button></td>
       </tr>`);
@@ -1916,10 +1924,10 @@ function renderVistaPrecios(){
         const precio=s.venta||s.precio||0;
         return`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--cream);border-radius:6px;margin-bottom:6px;border:0.5px solid var(--border-light);">
           <div>
-            <span style="font-size:14px;font-weight:500;color:var(--text-dark);">${s.nombre}</span>
-            ${s.marca?`<span style="font-size:11px;color:var(--text-muted);margin-left:8px;">${s.marca}</span>`:''}
+            ${s.marca?`<span style="font-size:13px;font-weight:700;color:var(--text-dark);">${s.marca}</span> `:''}
+            <span style="font-size:13px;color:var(--text-muted);font-weight:400;">${s.nombre}</span>
           </div>
-          <span style="font-family:'Inter',sans-serif;font-size:20px;font-weight:700;color:var(--text-dark);">$ ${precio.toLocaleString('es-AR')}</span>
+          <span style="font-family:'Inter',sans-serif;font-size:15px;font-weight:600;color:var(--text-dark);">$ ${precio.toLocaleString('es-AR')}</span>
         </div>`;
       }).join('')}
     </div>`).join('');
