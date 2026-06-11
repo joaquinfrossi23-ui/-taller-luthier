@@ -287,10 +287,14 @@ tr:hover td{background:rgba(196,149,106,0.04);}
       </div>
 
       <div id="section-clientes" class="section-hidden">
+        <div class="filtros-bar" style="margin-bottom:1rem;">
+          <input type="text" id="clientes-buscar" placeholder="🔍 Buscar cliente o localidad..." style="flex:1;font-size:12px;font-family:'Inter',sans-serif;border:0.5px solid var(--border);border-radius:6px;background:var(--parchment);color:var(--text-dark);padding:5px 8px;height:30px;" oninput="renderClientes()">
+          <span id="clientes-count" class="f-count"></span>
+        </div>
         <div class="card">
-          <div class="card-header"><span>Clientes</span><button class="btn" onclick="openClienteModal()"><i class="ti ti-plus"></i> Nuevo</button></div>
+          <div class="card-header"><span id="clientes-titulo">Clientes</span></div>
           <table><thead><tr><th>Nombre</th><th>Teléfono</th><th>Localidad</th><th>Órdenes</th><th></th></tr></thead>
-          <tbody id="clientes-table"><tr><td colspan="4" class="empty">Sin clientes.</td></tr></tbody></table>
+          <tbody id="clientes-table"><tr><td colspan="5" class="empty">Sin clientes.</td></tr></tbody></table>
         </div>
       </div>
 
@@ -327,9 +331,9 @@ tr:hover td{background:rgba(196,149,106,0.04);}
 
       <div id="section-presupuestos" class="section-hidden">
         <div class="card">
-          <div class="card-header"><span>Presupuestos</span><button class="btn" onclick="openPresupuestoModal()"><i class="ti ti-plus"></i> Nuevo</button></div>
+          <div class="card-header"><span>Presupuestos</span></div>
           <table><thead><tr><th>#</th><th>Cliente</th><th>Instrumento</th><th>Total</th><th>Estado</th><th></th></tr></thead>
-          <tbody id="presupuestos-table"><tr><td colspan="5" class="empty">Sin presupuestos.</td></tr></tbody></table>
+          <tbody id="presupuestos-table"><tr><td colspan="6" class="empty">Sin presupuestos.</td></tr></tbody></table>
         </div>
       </div>
 
@@ -1932,7 +1936,20 @@ function renderVistaPrecios(){
       }).join('')}
     </div>`).join('');
 }
-function renderClientes(){const tbody=document.getElementById('clientes-table');if(!clientes.length){tbody.innerHTML='<tr><td colspan="5" class="empty">Sin clientes.</td></tr>';return;}tbody.innerHTML=clientes.map((c,i)=>`<tr><td style="font-weight:500;color:var(--text-dark);">${c.nombre}</td><td>${c.tel||'—'}</td><td>${c.localidad||'—'}</td><td>${ordenes.filter(o=>o.cliente===c.nombre).length}</td><td style="display:flex;gap:3px;"><button class="action-btn" onclick="editarCliente(${i})" title="Editar"><i class="ti ti-edit"></i></button><button class="action-btn" onclick="deleteCliente(${i})"><i class="ti ti-trash"></i></button></td></tr>`).join('');}
+function renderClientes(){
+  const buscar=(document.getElementById('clientes-buscar')?document.getElementById('clientes-buscar').value||'':'').toLowerCase().trim();
+  const filtrados=buscar?clientes.filter(c=>c.nombre.toLowerCase().includes(buscar)||(c.localidad||'').toLowerCase().includes(buscar)):clientes;
+  const countEl=document.getElementById('clientes-count');
+  const tituloEl=document.getElementById('clientes-titulo');
+  if(countEl)countEl.textContent=buscar?`${filtrados.length} de ${clientes.length}`:`${clientes.length} clientes`;
+  if(tituloEl)tituloEl.textContent=`Clientes (${clientes.length})`;
+  const tbody=document.getElementById('clientes-table');
+  if(!filtrados.length){tbody.innerHTML=`<tr><td colspan="5" class="empty">${buscar?'Sin resultados.':'Sin clientes.'}</td></tr>`;return;}
+  tbody.innerHTML=filtrados.map((c,i)=>{
+    const idx=clientes.indexOf(c);
+    return`<tr><td style="font-weight:500;color:var(--text-dark);">${c.nombre}</td><td>${c.tel||'—'}</td><td>${c.localidad||'—'}</td><td>${ordenes.filter(o=>o.cliente===c.nombre).length}</td><td style="display:flex;gap:3px;"><button class="action-btn" onclick="editarCliente(${idx})" title="Editar"><i class="ti ti-edit"></i></button><button class="action-btn" onclick="deleteCliente(${idx})"><i class="ti ti-trash"></i></button></td></tr>`;
+  }).join('');
+}
 function renderFab(){const tbody=document.getElementById('fab-table');if(!fabricaciones.length){tbody.innerHTML='<tr><td colspan="8" class="empty">No hay instrumentos.</td></tr>';}else{tbody.innerHTML=fabricaciones.map(f=>`<tr><td style="color:var(--text-muted);font-size:12px;">#${f.id}</td><td style="font-weight:500;color:var(--text-dark);">${f.tipo}</td><td>${f.modelo}</td><td><span class="${f.destino==='encargo'?'tag-encargo':'tag-stock-dest'}">${f.destino==='encargo'?'Encargo':'Stock'}</span></td><td style="color:var(--text-muted);">${f.cliente!=='—'?f.cliente:'—'}</td><td><button class="badge ${badgeClass(f.estado)}" onclick="changeFabEstado(${f.id})">${f.estado}</button></td><td style="color:var(--text-muted);font-size:12px;">${f.fecha}</td><td style="display:flex;gap:3px;"><button class="action-btn" onclick="editarFab(${f.id})" title="Editar"><i class="ti ti-edit"></i></button><button class="action-btn" onclick="deleteFab(${f.id})"><i class="ti ti-trash"></i></button></td></tr>`).join('');}document.getElementById('fab-stat-progress').textContent=fabricaciones.filter(f=>f.estado==='En proceso').length;document.getElementById('fab-stat-done').textContent=fabricaciones.filter(f=>f.estado==='Terminado').length;document.getElementById('fab-stat-delivered').textContent=fabricaciones.filter(f=>f.estado==='Entregado / Vendido').length;document.getElementById('fab-stat-total').textContent=fabricaciones.length;}
 function renderPresupuestos(){
   const tbody=document.getElementById('presupuestos-table');
