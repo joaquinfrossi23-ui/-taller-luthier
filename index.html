@@ -218,6 +218,36 @@ tr:hover td{background:rgba(196,149,106,0.04);}
   </div>
 </div>
 
+<!-- Script de login independiente - se ejecuta antes que Firebase -->
+<script>
+(function(){
+  const PASSWORD = '2323';
+  function doLogin(){
+    const val = document.getElementById('login-input').value;
+    if(val === PASSWORD){
+      document.getElementById('login-screen').style.display='none';
+      document.getElementById('main-app').style.display='flex';
+      sessionStorage.setItem('taller-auth','ok');
+      if(typeof loadAll === 'function') loadAll();
+      else window._pendingLoad = true;
+    } else {
+      document.getElementById('login-error').style.display='block';
+      document.getElementById('login-input').value='';
+    }
+  }
+  document.getElementById('login-btn').addEventListener('click', doLogin);
+  document.getElementById('login-input').addEventListener('keydown', function(e){
+    if(e.key==='Enter') doLogin();
+  });
+  // Auto-login si ya estaba autenticado
+  if(sessionStorage.getItem('taller-auth')==='ok'){
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('main-app').style.display='flex';
+    window._pendingLoad = true;
+  }
+})();
+</script>
+
 <div class="app" id="main-app" style="display:none;">
   <nav class="sidebar">
     <div class="sidebar-logo">
@@ -288,7 +318,7 @@ tr:hover td{background:rgba(196,149,106,0.04);}
 
       <div id="section-clientes" class="section-hidden">
         <div class="filtros-bar" style="margin-bottom:1rem;">
-          <input type="text" id="clientes-buscar" placeholder="🔍 Buscar cliente o localidad..." style="flex:1;font-size:12px;font-family:'Inter',sans-serif;border:0.5px solid var(--border);border-radius:6px;background:var(--parchment);color:var(--text-dark);padding:5px 8px;height:30px;" oninput="renderClientes()">
+          <input type="text" id="clientes-buscar" placeholder="🔍 Buscar cliente o localidad..." style="flex:1;font-size:12px;font-family:'Inter',sans-serif;border:0.5px solid var(--border);border-radius:6px;background:var(--parchment);color:var(--text-dark);padding:5px 8px;height:30px;">
           <span id="clientes-count" class="f-count"></span>
         </div>
         <div class="card">
@@ -301,10 +331,10 @@ tr:hover td{background:rgba(196,149,106,0.04);}
       <div id="section-stock" class="section-hidden">
         <!-- Filtros de stock -->
         <div class="filtros-bar" style="margin-bottom:1rem;">
-          <select id="stock-filtro-cat" onchange="renderStock()" style="flex:1;font-size:12px;font-family:'Inter',sans-serif;border:0.5px solid var(--border);border-radius:6px;background:var(--parchment);color:var(--text-dark);padding:5px 8px;height:30px;">
+          <select id="stock-filtro-cat" style="flex:1;font-size:12px;font-family:'Inter',sans-serif;border:0.5px solid var(--border);border-radius:6px;background:var(--parchment);color:var(--text-dark);padding:5px 8px;height:30px;">
             <option value="">Todas las categorías</option>
           </select>
-          <select id="stock-filtro-marca" onchange="renderStock()" style="flex:1;font-size:12px;font-family:'Inter',sans-serif;border:0.5px solid var(--border);border-radius:6px;background:var(--parchment);color:var(--text-dark);padding:5px 8px;height:30px;">
+          <select id="stock-filtro-marca" style="flex:1;font-size:12px;font-family:'Inter',sans-serif;border:0.5px solid var(--border);border-radius:6px;background:var(--parchment);color:var(--text-dark);padding:5px 8px;height:30px;">
             <option value="">Todas las marcas</option>
           </select>
           <button id="btn-vista-precios" onclick="toggleVistaPrecios()" class="btn" style="white-space:nowrap;"><i class="ti ti-tag"></i> Ver precios</button>
@@ -813,8 +843,17 @@ const firebaseConfig = {
   messagingSenderId: "381213576507",
   appId: "1:381213576507:web:af52121986c5e732aabb1e"
 };
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+let db=null;
+try{
+  if(typeof firebase!=='undefined'){
+    firebase.initializeApp(firebaseConfig);
+    db=firebase.firestore();
+  }else{
+    console.warn('Firebase no disponible — modo sin guardado en la nube.');
+  }
+}catch(e){
+  console.error('Error inicializando Firebase:',e);
+}
 
 const PASSWORD = '2323';
 const DB_DOC = 'taller-data';
@@ -860,6 +899,7 @@ function logout(){
 // GUARDADO EN FIREBASE
 async function saveAll(){
   const ind=document.getElementById('save-indicator');
+  if(!db){ind.className='save-indicator';ind.innerHTML='<i class="ti ti-cloud-off"></i> Sin conexión';return;}
   ind.className='save-indicator saving';ind.innerHTML='<i class="ti ti-loader"></i> Guardando...';
   try{
     await db.collection('taller').doc(DB_DOC).set({ordenes,clientes,stock,presupuestos,fabricaciones,remitos,ordenCounter,presupuestoCounter,fabCounter,remitoCounter,categorias,marcas});
@@ -872,6 +912,7 @@ async function saveAll(){
 function scheduleSave(){if(saveTimeout)clearTimeout(saveTimeout);saveTimeout=setTimeout(saveAll,800);}
 
 async function loadAll(){
+  if(!db){renderAll();return;}
   try{
     const snap=await db.collection('taller').doc(DB_DOC).get();
     if(snap.exists){
@@ -1942,7 +1983,7 @@ function renderClientes(){
   const countEl=document.getElementById('clientes-count');
   const tituloEl=document.getElementById('clientes-titulo');
   if(countEl)countEl.textContent=buscar?`${filtrados.length} de ${clientes.length}`:`${clientes.length} clientes`;
-  if(tituloEl)tituloEl.textContent=`Clientes (${clientes.length})`;
+  if(tituloEl)tituloEl.textContent='Clientes';
   const tbody=document.getElementById('clientes-table');
   if(!filtrados.length){tbody.innerHTML=`<tr><td colspan="5" class="empty">${buscar?'Sin resultados.':'Sin clientes.'}</td></tr>`;return;}
   tbody.innerHTML=filtrados.map((c,i)=>{
@@ -2190,6 +2231,12 @@ function pdfRemitoGuardado(id){
 // Event listeners - script normal, DOM disponible al final del body
 document.getElementById('login-input').addEventListener('keydown',e=>{if(e.key==='Enter')checkLogin();});
 document.getElementById('login-btn').addEventListener('click',()=>checkLogin());
+const clientesBuscar=document.getElementById('clientes-buscar');
+if(clientesBuscar)clientesBuscar.addEventListener('input',renderClientes);
+const stockFiltrocat=document.getElementById('stock-filtro-cat');
+if(stockFiltrocat)stockFiltrocat.addEventListener('change',renderStock);
+const stockFiltromarca=document.getElementById('stock-filtro-marca');
+if(stockFiltromarca)stockFiltromarca.addEventListener('change',renderStock);
 
 // Iniciar filtros
 initFiltros();
