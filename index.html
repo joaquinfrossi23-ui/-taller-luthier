@@ -93,6 +93,7 @@ tr:hover td{background:rgba(196,149,106,0.04);}
 .badge-unpaid{background:#F5EDD8;color:#7A4F1A;border:0.5px solid #D4A853;cursor:pointer;}
 .badge-lowstock{background:#FDE8E8;color:#7A1A1A;border:0.5px solid #E08080;}
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(28,15,5,0.5);z-index:100;align-items:center;justify-content:center;}
+#modal-confirmar{z-index:200;}
 .modal-bg.open{display:flex;}
 .modal{background:var(--parchment);border-radius:12px;border:0.5px solid var(--border);width:520px;max-height:90vh;overflow-y:auto;}
 .modal-wide{width:640px;}
@@ -342,8 +343,8 @@ tr:hover td{background:rgba(196,149,106,0.04);}
 
         <!-- Vista normal -->
         <div id="stock-vista-normal" class="card">
-          <div class="card-header"><span>Materiales y accesorios</span><button class="btn" onclick="openStockModal()"><i class="ti ti-plus"></i> Agregar</button></div>
-          <table><thead><tr><th>Categoría</th><th>Marca</th><th>Descripción</th><th>Stock</th><th>P. Compra</th><th>P. Venta</th><th>Margen</th><th></th></tr></thead>
+          <div class="card-header"><span>Materiales y accesorios</span></div>
+          <table><thead><tr><th>Categoría</th><th>Marca</th><th>Descripción</th><th>Modelo</th><th>Stock</th><th>P. Compra</th><th>P. Venta</th><th>Margen</th><th></th></tr></thead>
           <tbody id="stock-table"><tr><td colspan="7" class="empty">Sin ítems.</td></tr></tbody></table>
         </div>
 
@@ -589,7 +590,9 @@ tr:hover td{background:rgba(196,149,106,0.04);}
         </div>
       </div>
       <!-- DESCRIPCIÓN -->
-      <div class="field"><label>Descripción</label><input type="text" id="s-nombre" placeholder="Ej: Cuerdas guitarra eléctrica 0.10"></div>
+      <div class="field"><label>Descripción</label><input type="text" id="s-nombre" placeholder="Ej: Acústica 0.10"></div>
+      <!-- MODELO -->
+      <div class="field"><label>Modelo <small style="font-weight:400;text-transform:none;letter-spacing:0;">(opcional)</small></label><input type="text" id="s-modelo" placeholder="Ej: ez900"></div>
       <div style="height:0.5px;background:var(--border-light);"></div>
       <!-- VARIANTES -->
       <div class="items-section">
@@ -771,21 +774,71 @@ tr:hover td{background:rgba(196,149,106,0.04);}
 
 <!-- MODAL EDITAR STOCK -->
 <div class="modal-bg" id="modal-editar-stock">
-  <div class="modal">
+  <div class="modal modal-wide">
     <div class="modal-header"><h3>Editar producto</h3><button class="action-btn" onclick="closeModal('modal-editar-stock')"><i class="ti ti-x"></i></button></div>
     <div class="modal-body">
-      <div class="field"><label>Producto</label><input type="text" id="edit-s-nombre"></div>
+      <!-- CATEGORÍA -->
       <div class="row2">
-        <div class="field"><label>Categoría</label><select id="edit-s-cat"></select></div>
-        <div class="field"><label>Cantidad en stock</label><input type="number" id="edit-s-qty" min="0"></div>
+        <div class="field"><label>Categoría</label>
+          <div style="display:flex;gap:4px;">
+            <select id="edit-s-cat" style="flex:1;"></select>
+            <button class="action-btn" onclick="editarCategoriaLista()" title="Renombrar categoría"><i class="ti ti-edit"></i></button>
+            <button class="action-btn" onclick="borrarCategoriaLista()" title="Borrar categoría"><i class="ti ti-trash"></i></button>
+          </div>
+        </div>
+        <div class="field"><label>Nueva categoría</label>
+          <div class="cat-add-row">
+            <input type="text" id="edit-s-cat-nueva" placeholder="Ej: Encordados">
+            <button class="btn" onclick="agregarCategoriaEdit()"><i class="ti ti-plus"></i></button>
+          </div>
+        </div>
       </div>
+      <!-- MARCA -->
+      <div class="row2">
+        <div class="field"><label>Marca</label>
+          <div style="display:flex;gap:4px;">
+            <select id="edit-s-marca" style="flex:1;"></select>
+            <button class="action-btn" onclick="editarMarcaLista()" title="Renombrar marca"><i class="ti ti-edit"></i></button>
+            <button class="action-btn" onclick="borrarMarcaLista()" title="Borrar marca"><i class="ti ti-trash"></i></button>
+          </div>
+        </div>
+        <div class="field"><label>Nueva marca</label>
+          <div class="cat-add-row">
+            <input type="text" id="edit-s-marca-nueva" placeholder="Ej: D'Addario">
+            <button class="btn" onclick="agregarMarcaEdit()"><i class="ti ti-plus"></i></button>
+          </div>
+        </div>
+      </div>
+      <!-- DESCRIPCIÓN -->
+      <div class="field"><label>Descripción</label><input type="text" id="edit-s-nombre" placeholder="Ej: Acústica 0.10"></div>
+      <!-- MODELO -->
+      <div class="field"><label>Modelo <small style="font-weight:400;text-transform:none;letter-spacing:0;">(opcional)</small></label><input type="text" id="edit-s-modelo" placeholder="Ej: ez900"></div>
+      <div style="height:0.5px;background:var(--border-light);"></div>
+      <!-- VARIANTES -->
+      <div class="items-section">
+        <h4>Variantes <small style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;color:var(--text-muted);">— opcional (ej: 0.10, 0.11 / Guitarra, Bajo)</small></h4>
+        <div id="edit-s-variantes-lista"></div>
+        <div style="display:grid;grid-template-columns:1fr auto auto;gap:6px;margin-top:8px;align-items:end;">
+          <input type="text" id="edit-s-variante-nombre" placeholder="Ej: 0.10 Guitarra eléctrica" style="font-size:12px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--cream);color:var(--text-dark);padding:6px 8px;">
+          <input type="number" id="edit-s-variante-qty" placeholder="Stock" min="0" value="0" style="width:64px;font-size:12px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--cream);color:var(--text-dark);padding:6px 8px;">
+          <button class="btn btn-primary" onclick="agregarVarianteEdit()" style="padding:7px 10px;"><i class="ti ti-plus"></i></button>
+        </div>
+      </div>
+      <div style="height:0.5px;background:var(--border-light);"></div>
+      <!-- PRECIOS -->
       <div class="precio-calc">
         <div class="row2">
           <div class="field"><label>Precio de compra ($)</label><input type="number" id="edit-s-compra" min="0" oninput="calcEditPrecioVenta()"></div>
           <div class="field"><label>% de ganancia</label><input type="number" id="edit-s-margen" min="0" oninput="calcEditPrecioVenta()"></div>
         </div>
-        <div class="field"><label>Precio de venta ($)</label><input type="number" id="edit-s-venta" min="0"></div>
+        <div class="precio-resultado">
+          <span style="font-size:12px;color:var(--text-muted);">Precio de venta sugerido</span>
+          <span id="edit-s-venta-calc">$—</span>
+        </div>
+        <div class="field"><label>Precio de venta ($) <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;">— compartido por todas las variantes</span></label><input type="number" id="edit-s-venta" min="0"></div>
       </div>
+      <!-- CANTIDAD -->
+      <div class="field" id="edit-s-qty-field"><label>Cantidad en stock <small style="font-weight:400;text-transform:none;letter-spacing:0;">(solo si no tiene variantes)</small></label><input type="number" id="edit-s-qty" min="0"></div>
     </div>
     <div class="modal-footer"><button class="btn" onclick="closeModal('modal-editar-stock')">Cancelar</button><button class="btn btn-primary" onclick="guardarEditStock()">Guardar cambios</button></div>
   </div>
@@ -1644,38 +1697,116 @@ function guardarEditRemito(){
 }
 function editarStock(i){
   const s=stock[i];if(!s)return;
+  // Categoría
   const sel=document.getElementById('edit-s-cat');
   sel.innerHTML=categorias.map(c=>`<option>${c}</option>`).join('');
-  document.getElementById('edit-s-nombre').value=s.nombre;
   sel.value=s.cat;
+  // Marca
+  const selM=document.getElementById('edit-s-marca');
+  selM.innerHTML='<option value="">— Sin marca —</option>'+marcas.map(m=>`<option>${m}</option>`).join('');
+  selM.value=s.marca||'';
+  // Datos
+  document.getElementById('edit-s-nombre').value=s.nombre;
+  document.getElementById('edit-s-modelo').value=s.modelo||'';
   document.getElementById('edit-s-qty').value=s.qty;
   document.getElementById('edit-s-compra').value=s.compra||0;
   document.getElementById('edit-s-venta').value=s.venta||s.precio||0;
   document.getElementById('edit-s-margen').value=s.margen||0;
-  // Cargar variantes en el editor
+  document.getElementById('edit-s-venta-calc').textContent='$—';
+  document.getElementById('edit-s-cat-nueva').value='';
+  document.getElementById('edit-s-marca-nueva').value='';
+  // Variantes
   sVariantes=[...(s.variantes||[]).map(v=>({...v}))];
-  // Agregar sección variantes al modal de editar si no existe
-  let varEl=document.getElementById('edit-s-variantes-section');
-  if(!varEl){
-    const body=document.querySelector('#modal-editar-stock .modal-body');
-    const div=document.createElement('div');
-    div.id='edit-s-variantes-section';
-    div.className='items-section';
-    div.style.marginBottom='8px';
-    div.innerHTML=`<h4>Variantes</h4>
-      <div id="edit-s-variantes-lista"></div>
-      <div style="display:grid;grid-template-columns:1fr auto auto;gap:6px;margin-top:8px;align-items:end;">
-        <input type="text" id="edit-s-variante-nombre" placeholder="Ej: 0.10 Guitarra" style="font-size:12px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--cream);color:var(--text-dark);padding:6px 8px;">
-        <input type="number" id="edit-s-variante-qty" placeholder="Stock" min="0" value="0" style="width:64px;font-size:12px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--cream);color:var(--text-dark);padding:6px 8px;">
-        <button class="btn btn-primary" onclick="agregarVarianteEdit()" style="padding:7px 10px;"><i class="ti ti-plus"></i></button>
-      </div>`;
-    // Insertar antes del precio-calc
-    const precioCalc=body.querySelector('.precio-calc');
-    body.insertBefore(div,precioCalc);
-  }
   renderSVariantesEdit();
   document.getElementById('modal-editar-stock').dataset.idx=i;
   document.getElementById('modal-editar-stock').classList.add('open');
+}
+function agregarCategoriaEdit(){
+  const inp=document.getElementById('edit-s-cat-nueva'),nueva=inp.value.trim();
+  if(!nueva){alert('Ingresá el nombre.');return;}
+  if(categorias.includes(nueva)){alert('Ya existe.');return;}
+  categorias.push(nueva);
+  const sel=document.getElementById('edit-s-cat');
+  sel.innerHTML=categorias.map(c=>`<option>${c}</option>`).join('');
+  sel.value=nueva;inp.value='';scheduleSave();
+}
+function agregarMarcaEdit(){
+  const inp=document.getElementById('edit-s-marca-nueva'),nueva=inp.value.trim();
+  if(!nueva){alert('Ingresá el nombre.');return;}
+  if(marcas.includes(nueva)){alert('Ya existe.');return;}
+  marcas.push(nueva);
+  const sel=document.getElementById('edit-s-marca');
+  sel.innerHTML='<option value="">— Sin marca —</option>'+marcas.map(m=>`<option>${m}</option>`).join('');
+  sel.value=nueva;inp.value='';scheduleSave();
+}
+function calcEditPrecioVenta(){
+  const c=parseFloat(document.getElementById('edit-s-compra').value)||0;
+  const m=parseFloat(document.getElementById('edit-s-margen').value)||0;
+  if(c>0&&m>0){
+    const v=Math.round(c*(1+m/100));
+    document.getElementById('edit-s-venta-calc').textContent='$ '+v.toLocaleString('es-AR');
+    document.getElementById('edit-s-venta').value=v;
+  } else {
+    document.getElementById('edit-s-venta-calc').textContent='$—';
+  }
+}
+// EDITAR / BORRAR CATEGORÍAS Y MARCAS DE LA LISTA
+function editarCategoriaLista(){
+  const sel=document.getElementById('edit-s-cat');
+  const actual=sel.value;
+  if(!actual)return;
+  const nuevo=prompt(`Renombrar categoría "${actual}" a:`,actual);
+  if(!nuevo||!nuevo.trim()||nuevo.trim()===actual)return;
+  const nuevoNombre=nuevo.trim();
+  if(categorias.includes(nuevoNombre)){alert('Ya existe esa categoría.');return;}
+  // Actualizar en la lista y en todos los productos
+  const idx=categorias.indexOf(actual);
+  if(idx>=0)categorias[idx]=nuevoNombre;
+  stock.forEach(s=>{if(s.cat===actual)s.cat=nuevoNombre;});
+  sel.innerHTML=categorias.map(c=>`<option>${c}</option>`).join('');
+  sel.value=nuevoNombre;
+  scheduleSave();renderStock();
+  alert(`Categoría renombrada en ${stock.filter(s=>s.cat===nuevoNombre).length} productos.`);
+}
+function borrarCategoriaLista(){
+  const sel=document.getElementById('edit-s-cat');
+  const actual=sel.value;
+  if(!actual)return;
+  const enUso=stock.filter(s=>s.cat===actual).length;
+  confirmar(`¿Borrar la categoría "${actual}"?`,enUso>0?`${enUso} producto(s) quedarán sin categoría.`:'No está en uso.',()=>{
+    categorias=categorias.filter(c=>c!==actual);
+    stock.forEach(s=>{if(s.cat===actual)s.cat='';});
+    sel.innerHTML=categorias.map(c=>`<option>${c}</option>`).join('');
+    scheduleSave();renderStock();
+  });
+}
+function editarMarcaLista(){
+  const sel=document.getElementById('edit-s-marca');
+  const actual=sel.value;
+  if(!actual){alert('Seleccioná una marca primero.');return;}
+  const nuevo=prompt(`Renombrar marca "${actual}" a:`,actual);
+  if(!nuevo||!nuevo.trim()||nuevo.trim()===actual)return;
+  const nuevoNombre=nuevo.trim();
+  if(marcas.includes(nuevoNombre)){alert('Ya existe esa marca.');return;}
+  const idx=marcas.indexOf(actual);
+  if(idx>=0)marcas[idx]=nuevoNombre;
+  stock.forEach(s=>{if(s.marca===actual)s.marca=nuevoNombre;});
+  sel.innerHTML='<option value="">— Sin marca —</option>'+marcas.map(m=>`<option>${m}</option>`).join('');
+  sel.value=nuevoNombre;
+  scheduleSave();renderStock();
+  alert(`Marca renombrada en ${stock.filter(s=>s.marca===nuevoNombre).length} productos.`);
+}
+function borrarMarcaLista(){
+  const sel=document.getElementById('edit-s-marca');
+  const actual=sel.value;
+  if(!actual){alert('Seleccioná una marca primero.');return;}
+  const enUso=stock.filter(s=>s.marca===actual).length;
+  confirmar(`¿Borrar la marca "${actual}"?`,enUso>0?`${enUso} producto(s) quedarán sin marca.`:'No está en uso.',()=>{
+    marcas=marcas.filter(m=>m!==actual);
+    stock.forEach(s=>{if(s.marca===actual)s.marca='';});
+    sel.innerHTML='<option value="">— Sin marca —</option>'+marcas.map(m=>`<option>${m}</option>`).join('');
+    scheduleSave();renderStock();
+  });
 }
 function agregarVarianteEdit(){
   const nombre=document.getElementById('edit-s-variante-nombre').value.trim();
@@ -1691,7 +1822,9 @@ function quitarVarianteEdit(i){sVariantes.splice(i,1);renderSVariantesEdit();}
 function editarQtyVarianteEdit(i,val){sVariantes[i].qty=parseInt(val)||0;}
 function renderSVariantesEdit(){
   const el=document.getElementById('edit-s-variantes-lista');if(!el)return;
-  if(!sVariantes.length){el.innerHTML='<p style="font-size:12px;color:var(--text-muted);font-style:italic;padding:4px 0;">Sin variantes.</p>';return;}
+  const cantidadField=document.getElementById('edit-s-qty-field');
+  if(cantidadField)cantidadField.style.display=sVariantes.length?'none':'flex';
+  if(!sVariantes.length){el.innerHTML='<p style="font-size:12px;color:var(--text-muted);font-style:italic;padding:4px 0;">Sin variantes — el producto tendrá un stock único.</p>';return;}
   el.innerHTML=sVariantes.map((v,i)=>`<div style="display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;background:var(--cream);border-radius:6px;padding:6px 10px;border:0.5px solid var(--border-light);margin-bottom:4px;">
     <span style="font-size:13px;color:var(--text-dark);">${v.nombre}</span>
     <input type="number" value="${v.qty}" min="0" oninput="editarQtyVarianteEdit(${i},this.value)" style="width:64px;font-size:12px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--parchment);color:var(--text-dark);padding:4px 6px;">
@@ -1702,9 +1835,11 @@ function guardarEditStock(){
   const i=parseInt(document.getElementById('modal-editar-stock').dataset.idx);
   const s=stock[i];if(!s)return;
   const nombre=document.getElementById('edit-s-nombre').value;
-  if(!nombre){alert('Ingresá el nombre.');return;}
+  if(!nombre){alert('Ingresá la descripción.');return;}
   s.nombre=nombre;
+  s.modelo=document.getElementById('edit-s-modelo').value||'';
   s.cat=document.getElementById('edit-s-cat').value;
+  s.marca=document.getElementById('edit-s-marca').value||'';
   s.qty=sVariantes.length?0:parseInt(document.getElementById('edit-s-qty').value)||0;
   s.compra=parseFloat(document.getElementById('edit-s-compra').value)||0;
   s.venta=parseFloat(document.getElementById('edit-s-venta').value)||0;
@@ -1785,6 +1920,7 @@ function saveStock(){
     nombre,
     cat:document.getElementById('s-cat').value,
     marca:document.getElementById('s-marca').value||'',
+    modelo:document.getElementById('s-modelo').value||'',
     qty,compra,venta,margen,precio:venta||compra,
     variantes:sVariantes.length?sVariantes.map(v=>({...v})):[]
   });
@@ -1905,7 +2041,7 @@ function renderStock(){
   );
 
   const tbody=document.getElementById('stock-table');
-  if(!stockFiltrado.length){tbody.innerHTML='<tr><td colspan="9" class="empty">Sin ítems.</td></tr>';renderVistaPrecios(stockFiltrado);return;}
+  if(!stockFiltrado.length){tbody.innerHTML='<tr><td colspan="10" class="empty">Sin ítems.</td></tr>';renderVistaPrecios(stockFiltrado);return;}
   let rows=[];
   stockFiltrado.forEach(s=>{
     const i=s._idx;
@@ -1916,6 +2052,7 @@ function renderStock(){
         <td style="font-weight:700;color:var(--text-dark);">${s.cat}</td>
         <td style="color:var(--text-muted);font-size:12px;">${s.marca||'—'}</td>
         <td style="color:var(--text-muted);font-size:12px;">${s.nombre}</td>
+        <td style="color:var(--text-muted);font-size:12px;">${s.modelo||'—'}</td>
         <td>${variantesTag}</td>
         <td style="color:var(--text-muted);font-size:12px;">${s.compra?'$'+s.compra.toLocaleString('es-AR'):'—'}</td>
         <td style="font-weight:500;font-size:12px;">${s.venta?'$'+s.venta.toLocaleString('es-AR'):'—'}</td>
@@ -1927,6 +2064,7 @@ function renderStock(){
         <td style="font-weight:700;color:var(--text-dark);">${s.cat}</td>
         <td style="color:var(--text-muted);font-size:12px;">${s.marca||'—'}</td>
         <td style="color:var(--text-muted);font-size:12px;">${s.nombre}</td>
+        <td style="color:var(--text-muted);font-size:12px;">${s.modelo||'—'}</td>
         <td>${s.qty<=2?`<span class="badge badge-lowstock">${s.qty}</span>`:s.qty}</td>
         <td style="color:var(--text-muted);font-size:12px;">${s.compra?'$'+s.compra.toLocaleString('es-AR'):'—'}</td>
         <td style="font-weight:500;font-size:12px;">${s.venta?'$'+s.venta.toLocaleString('es-AR'):s.precio?'$'+s.precio.toLocaleString('es-AR'):'—'}</td>
@@ -1970,7 +2108,7 @@ function renderVistaPrecios(){
         return`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--cream);border-radius:6px;margin-bottom:6px;border:0.5px solid var(--border-light);">
           <div>
             ${s.marca?`<span style="font-size:13px;font-weight:700;color:var(--text-dark);">${s.marca}</span> `:''}
-            <span style="font-size:13px;color:var(--text-muted);font-weight:400;">${s.nombre}</span>
+            <span style="font-size:13px;color:var(--text-muted);font-weight:400;">${s.nombre}${s.modelo?' '+s.modelo:''}</span>
           </div>
           <span style="font-family:'Inter',sans-serif;font-size:15px;font-weight:600;color:var(--text-dark);">$ ${precio.toLocaleString('es-AR')}</span>
         </div>`;
