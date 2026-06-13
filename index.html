@@ -30,6 +30,10 @@ body{font-family:'Inter',sans-serif;background:var(--parchment);}
 
 /* MODAL CONFIRMAR BORRAR */
 .confirm-modal{background:var(--parchment);border-radius:12px;border:0.5px solid var(--border);width:340px;padding:1.5rem;text-align:center;}
+#section-ordenes .card{overflow:auto;max-height:calc(100vh - 230px);}
+#section-ordenes thead th{position:sticky;top:0;background:var(--cream-dark);z-index:10;}
+#section-glam .card:last-child{overflow:auto;max-height:calc(100vh - 190px);}
+#section-glam thead th{position:sticky;top:0;background:var(--glam-light);z-index:10;}
 .confirm-modal h3{font-family:'Playfair Display',serif;font-size:17px;font-weight:400;color:var(--text-dark);margin-bottom:8px;}
 .confirm-modal p{font-size:13px;color:var(--text-muted);margin-bottom:1.25rem;}
 .confirm-btns{display:flex;gap:8px;justify-content:center;}
@@ -66,11 +70,11 @@ body{font-family:'Inter',sans-serif;background:var(--parchment);}
 .content{flex:1;overflow-y:auto;padding:1.25rem 1.5rem;}
 .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1rem;}
 .stats-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1.25rem;}
-.stat-card{background:var(--cream);border:0.5px solid var(--border-light);border-radius:8px;padding:1rem;border-top:2px solid var(--ocre);}
+.stat-card{background:var(--cream);border:0.5px solid var(--border-light);border-radius:8px;padding:6px 10px;border-top:2px solid var(--ocre);display:flex;align-items:center;gap:8px;}
 .stat-card.glam{border-top:2px solid var(--glam);background:var(--glam-light);}
-.stat-label{font-size:11px;color:var(--text-muted);margin-bottom:4px;letter-spacing:0.05em;text-transform:uppercase;}
-.stat-value{font-family:'Playfair Display',serif;font-size:26px;color:var(--text-dark);}
-.stat-sub{font-size:11px;color:var(--text-muted);margin-top:2px;}
+.stat-label{font-size:10px;color:var(--text-muted);letter-spacing:0.05em;text-transform:uppercase;}
+.stat-value{font-family:'Inter',sans-serif;font-size:18px;font-weight:700;color:var(--text-dark);}
+.stat-sub{display:none;}
 .card{background:var(--cream);border:0.5px solid var(--border-light);border-radius:10px;overflow:hidden;margin-bottom:1rem;}
 .card:last-child{margin-bottom:0;}
 .card-header{padding:12px 1rem;border-bottom:0.5px solid var(--border-light);display:flex;align-items:center;justify-content:space-between;background:var(--cream-dark);}
@@ -203,6 +207,20 @@ tr:hover td{background:rgba(196,149,106,0.04);}
   .print-actions{display:none!important;}
   .print-modal{width:100%;border:none;border-radius:0;max-height:none;}
   .print-preview{padding:1.5cm;}
+}
+@media (max-width:768px){
+  .card{overflow-x:auto;}
+  table{min-width:580px;}
+  .sidebar{width:52px;}
+  .sidebar .nav-label{display:none;}
+  .main-content{padding:0.5rem;}
+  .stats-grid-4,.stats-grid-3{grid-template-columns:repeat(2,1fr);}
+  .filtros-bar{flex-wrap:wrap;}
+  .modal,.modal-wide{width:95vw;max-width:95vw;}
+  .row2,.row3{grid-template-columns:1fr;}
+  .modal-body{padding:0.75rem;}
+  #section-ordenes .card{max-height:calc(100vh - 200px);}
+  #section-glam .card:last-child{max-height:calc(100vh - 160px);}
 }
 </style>
 </head>
@@ -369,10 +387,10 @@ tr:hover td{background:rgba(196,149,106,0.04);}
       </div>
 
       <div id="section-glam" class="section-hidden">
-        <div class="stats-grid-3">
-          <div class="stat-card glam"><div class="stat-label">Activas</div><div class="stat-value" id="glam-stat-ordenes">0</div><div class="stat-sub">en taller</div></div>
-          <div class="stat-card glam"><div class="stat-label">Comisión pendiente</div><div class="stat-value" id="glam-stat-comision">$0</div><div class="stat-sub">10% mano de obra</div></div>
-          <div class="stat-card glam"><div class="stat-label">Comisión pagada</div><div class="stat-value" id="glam-stat-pagada">$0</div><div class="stat-sub">acumulado</div></div>
+        <div class="stats-grid-3" style="margin-bottom:6px;">
+          <div class="stat-card glam"><div class="stat-value" id="glam-stat-ordenes">0</div><div class="stat-label">Activas</div></div>
+          <div class="stat-card glam"><div class="stat-value" id="glam-stat-comision">$0</div><div class="stat-label">Comisión pendiente</div></div>
+          <div class="stat-card glam"><div class="stat-value" id="glam-stat-pagada">$0</div><div class="stat-label">Comisión pagada</div></div>
         </div>
         <div class="card">
           <div class="card-header glam-header"><span style="color:var(--glam);">Órdenes de GLAM</span></div>
@@ -997,6 +1015,13 @@ function showSection(s){
   btn.setAttribute('onclick',cfg.btnAction);
   // Inicializar remito GLAM al entrar a esa sección
   if(s==='glam-remitos')initRemitoGlam();
+  // Scroll al final en GLAM
+  if(s==='glam'){
+    setTimeout(()=>{
+      const card=document.querySelector('#section-glam .card:last-child');
+      if(card)card.scrollTop=card.scrollHeight;
+    },150);
+  }
 }
 
 function initFiltros(){
@@ -2018,8 +2043,11 @@ function renderOrdenes(){
     const cobroTag=cobrado===0?'':`<span class="badge ${cobrado>=total?'badge-cobrado':'badge-parcial'}">${cobrado>=total?'Cobrado':o.estado==='En proceso'?'Seña recibida':'Parcial'}</span>`;
     return`<tr><td style="color:var(--text-muted);font-size:12px;">#${o.id}</td><td>${o.origen==='glam'?'<span class="tag-glam">GLAM</span>':'<span class="tag-propio">Propio</span>'}</td><td style="font-weight:500;color:var(--text-dark);">${o.cliente}</td><td>${o.instrumento}${o.marca?` <span style="font-size:11px;color:var(--text-muted);">(${o.marca})</span>`:''}</td><td style="font-weight:500;">${total?'$'+total.toLocaleString('es-AR'):'—'}</td><td style="color:#2A5A2A;font-weight:500;">${cobrado?'$'+cobrado.toLocaleString('es-AR'):'—'}</td><td style="${saldo>0&&total?'color:#C0392B;font-weight:500;':'color:var(--text-muted);'}">${total&&saldo>0?'$'+saldo.toLocaleString('es-AR'):'—'}</td><td><button class="badge ${badgeClass(o.estado)}" onclick="changeEstado(${o.id})">${o.estado}</button></td><td>${cobroTag}</td><td style="color:var(--text-muted);font-size:12px;">${o.fecha}</td><td style="display:flex;gap:3px;"><button class="action-btn" onclick="openDetalle(${o.id})"><i class="ti ti-eye"></i></button><button class="action-btn" onclick="printOrden(${o.id})"><i class="ti ti-printer"></i></button><button class="action-btn" onclick="deleteOrden(${o.id})"><i class="ti ti-trash"></i></button></td></tr>`;
   }).join('');
+  // Scroll al final para ver las últimas órdenes
+  const card=document.querySelector('#section-ordenes .card');
+  if(card)setTimeout(()=>card.scrollTop=card.scrollHeight,50);
 }
-function renderGlam(){const g=ordenes.filter(o=>o.origen==='glam');const getMano=o=>(o.items||[]).filter(it=>it.tipo!=='material').reduce((s,it)=>s+it.qty*it.precio,0);document.getElementById('glam-stat-ordenes').textContent=g.filter(o=>o.estado!=='Entregado'&&o.estado!=='Cobrado').length;document.getElementById('glam-stat-comision').textContent='$'+g.filter(o=>!o.comisionPagada).reduce((s,o)=>s+getMano(o)*0.1,0).toLocaleString('es-AR',{maximumFractionDigits:0});document.getElementById('glam-stat-pagada').textContent='$'+g.filter(o=>o.comisionPagada).reduce((s,o)=>s+getMano(o)*0.1,0).toLocaleString('es-AR',{maximumFractionDigits:0});const tbody=document.getElementById('glam-ordenes-table');if(!g.length){tbody.innerHTML='<tr><td colspan="8" class="empty">No hay órdenes de GLAM.</td></tr>';}else{tbody.innerHTML=g.map(o=>{const mano=getMano(o);return`<tr><td style="color:var(--text-muted);font-size:12px;">#${o.id}</td><td style="font-weight:500;color:var(--text-dark);">${o.cliente}</td><td>${o.instrumento}</td><td>$${mano.toLocaleString('es-AR')}</td><td style="color:var(--glam);font-weight:500;">$${(mano*0.1).toLocaleString('es-AR',{maximumFractionDigits:0})}</td><td><button class="badge ${badgeClass(o.estado)}" onclick="changeEstado(${o.id})">${o.estado}</button></td><td><button class="badge ${o.comisionPagada?'badge-paid':'badge-unpaid'}" onclick="toggleComision(${o.id})">${o.comisionPagada?'Pagada':'Pendiente'}</button></td><td><button class="action-btn" onclick="openDetalle(${o.id})"><i class="ti ti-eye"></i></button></td></tr>`;}).join('');}}
+function renderGlam(){const g=ordenes.filter(o=>o.origen==='glam');const getMano=o=>(o.items||[]).filter(it=>it.tipo!=='material').reduce((s,it)=>s+it.qty*it.precio,0);document.getElementById('glam-stat-ordenes').textContent=g.filter(o=>o.estado!=='Entregado'&&o.estado!=='Cobrado').length;document.getElementById('glam-stat-comision').textContent='$'+g.filter(o=>!o.comisionPagada).reduce((s,o)=>s+getMano(o)*0.1,0).toLocaleString('es-AR',{maximumFractionDigits:0});document.getElementById('glam-stat-pagada').textContent='$'+g.filter(o=>o.comisionPagada).reduce((s,o)=>s+getMano(o)*0.1,0).toLocaleString('es-AR',{maximumFractionDigits:0});const tbody=document.getElementById('glam-ordenes-table');if(!g.length){tbody.innerHTML='<tr><td colspan="8" class="empty">No hay órdenes de GLAM.</td></tr>';}else{tbody.innerHTML=g.map(o=>{const mano=getMano(o);return`<tr><td style="color:var(--text-muted);font-size:12px;">#${o.id}</td><td style="font-weight:500;color:var(--text-dark);">${o.cliente}</td><td>${o.instrumento}</td><td>$${mano.toLocaleString('es-AR')}</td><td style="color:var(--glam);font-weight:500;">$${(mano*0.1).toLocaleString('es-AR',{maximumFractionDigits:0})}</td><td><button class="badge ${badgeClass(o.estado)}" onclick="changeEstado(${o.id})">${o.estado}</button></td><td><button class="badge ${o.comisionPagada?'badge-paid':'badge-unpaid'}" onclick="toggleComision(${o.id})">${o.comisionPagada?'Pagada':'Pendiente'}</button></td><td><button class="action-btn" onclick="openDetalle(${o.id})"><i class="ti ti-eye"></i></button></td></tr>`;}).join('');const glamCard=document.querySelector('#section-glam .card:last-child');if(glamCard)setTimeout(()=>{glamCard.scrollTop=glamCard.scrollHeight;const tbody2=document.getElementById('glam-ordenes-table');if(tbody2)tbody2.lastElementChild&&tbody2.lastElementChild.scrollIntoView();},100);}}
 function renderStock(){
   // Actualizar selects de filtro
   const filtroSel=document.getElementById('stock-filtro-cat');
