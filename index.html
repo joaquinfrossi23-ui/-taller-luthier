@@ -219,8 +219,9 @@ tr:hover td{background:rgba(196,149,106,0.04);}
   .modal,.modal-wide{width:95vw;max-width:95vw;}
   .row2,.row3{grid-template-columns:1fr;}
   .modal-body{padding:0.75rem;}
-  #section-ordenes .card{max-height:calc(100vh - 200px);}
-  #section-glam .card:last-child{max-height:calc(100vh - 160px);}
+  #section-ordenes .card{max-height:calc(100vh - 130px);}
+  #section-glam .card:last-child{max-height:calc(100vh - 110px);}
+  .stats-grid-4,.stats-grid-3{display:none;}
 }
 </style>
 </head>
@@ -1534,11 +1535,46 @@ function openDetalle(id){
   document.getElementById('detalle-footer').innerHTML=`
     <button class="btn" onclick="closeModal('modal-detalle')">Cerrar</button>
     <button class="btn" onclick="volverAPresupuesto(${o.id})" title="Volver a presupuesto" style="color:var(--text-muted);"><i class="ti ti-arrow-back-up"></i> A presupuesto</button>
+    <button class="btn" onclick="compartirOrden(${o.id})" style="background:#25D366;color:#fff;border-color:#25D366;"><i class="ti ti-share"></i> Compartir</button>
     <button class="btn" onclick="editarOrden(${o.id})"><i class="ti ti-edit"></i> Editar</button>
     <button class="btn btn-primary" onclick="printOrden(${o.id})"><i class="ti ti-printer"></i> Imprimir</button>`;
   document.getElementById('modal-detalle').classList.add('open');
 }
 function changeEstado(id){const o=ordenes.find(o=>o.id===id);if(!o)return;const idx=ESTADOS.indexOf(o.estado);o.estado=ESTADOS[(idx+1)%ESTADOS.length];renderOrdenes();renderGlam();scheduleSave();}
+
+async function compartirOrden(id){
+  const o=ordenes.find(o=>o.id===id);if(!o)return;
+  const items=o.items||[];
+  const cobros=o.cobros||[];
+  const total=calcTotal(items);
+  const cobrado=calcCobrado(cobros);
+  const saldo=Math.max(0,total-cobrado);
+  let texto=`🎸 *Orden de trabajo — Joaquin Rossi Luthier*\n\n`;
+  texto+=`Cliente: ${o.cliente}\n`;
+  texto+=`Instrumento: ${o.instrumento}${o.marca?' ('+o.marca+')':''}\n`;
+  texto+=`Estado: ${o.estado}\n\n`;
+  if(items.length){
+    texto+=`*Detalle:*\n`;
+    items.forEach(it=>{
+      if(it.tipo==='material-glam')texto+=`• ${it.desc}${it.qty>1?' × '+it.qty:''} (insumo GLAM)\n`;
+      else texto+=`• ${it.desc}${it.qty>1?' × '+it.qty:''}: $${(it.qty*it.precio).toLocaleString('es-AR')}\n`;
+    });
+    texto+=`\n*Total: $${total.toLocaleString('es-AR')}*\n`;
+    if(cobrado>0)texto+=`Cobrado: $${cobrado.toLocaleString('es-AR')}\n`;
+    if(saldo>0)texto+=`Saldo pendiente: $${saldo.toLocaleString('es-AR')}\n`;
+  }
+  if(o.obs)texto+=`\n_${o.obs}_\n`;
+  if(saldo>0){
+    texto+=`\n💳 *Datos para transferencia:*\n`;
+    texto+=`Alias: *musicaydeporte*\n`;
+    texto+=`Titular: Joaquin Facundo Rossi`;
+  }
+  if(navigator.share){
+    try{await navigator.share({title:`Orden — ${o.cliente}`,text:texto});}catch(e){}
+  } else {
+    navigator.clipboard.writeText(texto).then(()=>alert('Texto copiado al portapapeles.'));
+  }
+}
 
 function volverAPresupuesto(id){
   const o=ordenes.find(o=>o.id===id);if(!o)return;
