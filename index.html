@@ -1021,6 +1021,11 @@ async function loadAll(){
     }
   }catch(e){console.error('Error cargando datos:',e);}
   renderAll();
+  // Scroll al final en órdenes al cargar por primera vez
+  setTimeout(()=>{
+    const card=document.querySelector('#section-ordenes .card');
+    if(card)card.scrollTop=card.scrollHeight;
+  },300);
 }
 
 function renderAll(){renderOrdenes();renderFab();renderClientes();renderStock();renderPresupuestos();renderGlam();renderRemitos();}
@@ -1039,11 +1044,21 @@ function showSection(s){
   btn.setAttribute('onclick',cfg.btnAction);
   // Inicializar remito GLAM al entrar a esa sección
   if(s==='glam-remitos')initRemitoGlam();
-  // Scroll al final en GLAM
+  // Scroll al final solo al entrar
+  if(s==='ordenes'){
+    _scrollOrdenesAlFinal=true;
+    setTimeout(()=>{
+      const card=document.querySelector('#section-ordenes .card');
+      if(card)card.scrollTop=card.scrollHeight;
+      _scrollOrdenesAlFinal=false;
+    },200);
+  }
   if(s==='glam'){
+    _scrollGlamAlFinal=true;
     setTimeout(()=>{
       const card=document.querySelector('#section-glam .card:last-child');
       if(card)card.scrollTop=card.scrollHeight;
+      _scrollGlamAlFinal=false;
     },150);
   }
 }
@@ -1556,13 +1571,20 @@ function openDetalle(id){
     </div>`;
   const dss=document.getElementById('det-stock-sel');if(dss)dss.onchange=function(){const idx=parseInt(this.value);if(!isNaN(idx)&&stock[idx])document.getElementById('det-precio').value=stock[idx].venta||stock[idx].precio||0;};
   document.getElementById('detalle-footer').innerHTML=`
-    <button class="btn" onclick="closeModal('modal-detalle')">Cerrar</button>
+    <button class="btn btn-primary" onclick="guardarYCerrarDetalle(${o.id})"><i class="ti ti-device-floppy"></i> Guardar y cerrar</button>
     <button class="btn" onclick="volverAPresupuesto(${o.id})" title="Volver a presupuesto" style="color:var(--text-muted);"><i class="ti ti-arrow-back-up"></i> A presupuesto</button>
     <button class="btn" onclick="compartirOrden(${o.id})" style="background:#25D366;color:#fff;border-color:#25D366;"><i class="ti ti-share"></i> Compartir</button>
     <button class="btn" onclick="editarOrden(${o.id})"><i class="ti ti-edit"></i> Editar</button>
     <button class="btn btn-primary" onclick="printOrden(${o.id})"><i class="ti ti-printer"></i> Imprimir</button>`;
   document.getElementById('modal-detalle').classList.add('open');
 }
+function guardarYCerrarDetalle(id){
+  scheduleSave();
+  closeModal('modal-detalle');
+  renderOrdenes();
+  renderGlam();
+}
+
 function changeEstado(id){const o=ordenes.find(o=>o.id===id);if(!o)return;const idx=ESTADOS.indexOf(o.estado);o.estado=ESTADOS[(idx+1)%ESTADOS.length];renderOrdenes();renderGlam();scheduleSave();}
 
 async function compartirOrden(id){
@@ -2013,7 +2035,8 @@ function saveStock(){
   document.querySelectorAll('#modal-stock input').forEach(el=>el.value='');
   document.getElementById('s-venta-calc').textContent='$—';
 }
-let presItems=[];
+let _scrollOrdenesAlFinal=false;
+let _scrollGlamAlFinal=false;
 function openPresupuestoModal(){
   presItems=[];
   populateClienteSelect('p-cliente');
@@ -2102,11 +2125,14 @@ function renderOrdenes(){
     const cobroTag=cobrado===0?'':`<span class="badge ${cobrado>=total?'badge-cobrado':'badge-parcial'}">${cobrado>=total?'Cobrado':o.estado==='En proceso'?'Seña recibida':'Parcial'}</span>`;
     return`<tr><td style="color:var(--text-muted);font-size:12px;">#${o.id}</td><td>${o.origen==='glam'?'<span class="tag-glam">GLAM</span>':'<span class="tag-propio">Propio</span>'}</td><td style="font-weight:500;color:var(--text-dark);">${o.cliente}</td><td>${o.instrumento}${o.marca?` <span style="font-size:11px;color:var(--text-muted);">(${o.marca})</span>`:''}</td><td style="font-weight:500;">${total?'$'+total.toLocaleString('es-AR'):'—'}</td><td style="color:#2A5A2A;font-weight:500;">${cobrado?'$'+cobrado.toLocaleString('es-AR'):'—'}</td><td style="${saldo>0&&total?'color:#C0392B;font-weight:500;':'color:var(--text-muted);'}">${total&&saldo>0?'$'+saldo.toLocaleString('es-AR'):'—'}</td><td><button class="badge ${badgeClass(o.estado)}" onclick="changeEstado(${o.id})">${o.estado}</button></td><td>${cobroTag}</td><td style="color:var(--text-muted);font-size:12px;">${o.fecha}</td><td style="display:flex;gap:3px;"><button class="action-btn" onclick="openDetalle(${o.id})"><i class="ti ti-eye"></i></button><button class="action-btn" onclick="printOrden(${o.id})"><i class="ti ti-printer"></i></button><button class="action-btn" onclick="deleteOrden(${o.id})"><i class="ti ti-trash"></i></button></td></tr>`;
   }).join('');
-  // Scroll al final para ver las últimas órdenes
-  const card=document.querySelector('#section-ordenes .card');
-  if(card)setTimeout(()=>card.scrollTop=card.scrollHeight,50);
+  // Scroll al final solo al entrar a la sección
+  if(_scrollOrdenesAlFinal){
+    _scrollOrdenesAlFinal=false;
+    const card=document.querySelector('#section-ordenes .card');
+    if(card)setTimeout(()=>card.scrollTop=card.scrollHeight,100);
+  }
 }
-function renderGlam(){const g=ordenes.filter(o=>o.origen==='glam');const getMano=o=>(o.items||[]).filter(it=>it.tipo!=='material').reduce((s,it)=>s+it.qty*it.precio,0);document.getElementById('glam-stat-ordenes').textContent=g.filter(o=>o.estado!=='Entregado'&&o.estado!=='Cobrado').length;document.getElementById('glam-stat-comision').textContent='$'+g.filter(o=>!o.comisionPagada).reduce((s,o)=>s+getMano(o)*0.1,0).toLocaleString('es-AR',{maximumFractionDigits:0});document.getElementById('glam-stat-pagada').textContent='$'+g.filter(o=>o.comisionPagada).reduce((s,o)=>s+getMano(o)*0.1,0).toLocaleString('es-AR',{maximumFractionDigits:0});const tbody=document.getElementById('glam-ordenes-table');if(!g.length){tbody.innerHTML='<tr><td colspan="8" class="empty">No hay órdenes de GLAM.</td></tr>';}else{tbody.innerHTML=g.map(o=>{const mano=getMano(o);return`<tr><td style="color:var(--text-muted);font-size:12px;">#${o.id}</td><td style="font-weight:500;color:var(--text-dark);">${o.cliente}</td><td>${o.instrumento}</td><td>$${mano.toLocaleString('es-AR')}</td><td style="color:var(--glam);font-weight:500;">$${(mano*0.1).toLocaleString('es-AR',{maximumFractionDigits:0})}</td><td><button class="badge ${badgeClass(o.estado)}" onclick="changeEstado(${o.id})">${o.estado}</button></td><td><button class="badge ${o.comisionPagada?'badge-paid':'badge-unpaid'}" onclick="toggleComision(${o.id})">${o.comisionPagada?'Pagada':'Pendiente'}</button></td><td><button class="action-btn" onclick="openDetalle(${o.id})"><i class="ti ti-eye"></i></button></td></tr>`;}).join('');const glamCard=document.querySelector('#section-glam .card:last-child');if(glamCard)setTimeout(()=>{glamCard.scrollTop=glamCard.scrollHeight;const tbody2=document.getElementById('glam-ordenes-table');if(tbody2)tbody2.lastElementChild&&tbody2.lastElementChild.scrollIntoView();},100);}}
+function renderGlam(){const g=ordenes.filter(o=>o.origen==='glam');const getMano=o=>(o.items||[]).filter(it=>it.tipo!=='material').reduce((s,it)=>s+it.qty*it.precio,0);document.getElementById('glam-stat-ordenes').textContent=g.filter(o=>o.estado!=='Entregado'&&o.estado!=='Cobrado').length;document.getElementById('glam-stat-comision').textContent='$'+g.filter(o=>!o.comisionPagada).reduce((s,o)=>s+getMano(o)*0.1,0).toLocaleString('es-AR',{maximumFractionDigits:0});document.getElementById('glam-stat-pagada').textContent='$'+g.filter(o=>o.comisionPagada).reduce((s,o)=>s+getMano(o)*0.1,0).toLocaleString('es-AR',{maximumFractionDigits:0});const tbody=document.getElementById('glam-ordenes-table');if(!g.length){tbody.innerHTML='<tr><td colspan="8" class="empty">No hay órdenes de GLAM.</td></tr>';}else{tbody.innerHTML=g.map(o=>{const mano=getMano(o);return`<tr><td style="color:var(--text-muted);font-size:12px;">#${o.id}</td><td style="font-weight:500;color:var(--text-dark);">${o.cliente}</td><td>${o.instrumento}</td><td>$${mano.toLocaleString('es-AR')}</td><td style="color:var(--glam);font-weight:500;">$${(mano*0.1).toLocaleString('es-AR',{maximumFractionDigits:0})}</td><td><button class="badge ${badgeClass(o.estado)}" onclick="changeEstado(${o.id})">${o.estado}</button></td><td><button class="badge ${o.comisionPagada?'badge-paid':'badge-unpaid'}" onclick="toggleComision(${o.id})">${o.comisionPagada?'Pagada':'Pendiente'}</button></td><td><button class="action-btn" onclick="openDetalle(${o.id})"><i class="ti ti-eye"></i></button></td></tr>`;}).join('');const glamCard=document.querySelector('#section-glam .card:last-child');if(glamCard&&_scrollGlamAlFinal)setTimeout(()=>{glamCard.scrollTop=glamCard.scrollHeight;_scrollGlamAlFinal=false;},100);}}
 function renderStock(){
   // Actualizar selects de filtro
   const filtroSel=document.getElementById('stock-filtro-cat');
