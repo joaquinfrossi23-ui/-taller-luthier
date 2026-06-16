@@ -301,7 +301,8 @@ tr:hover td{background:rgba(196,149,106,0.04);}
     <div class="nav-item active" onclick="showSection('ordenes')" id="nav-ordenes"><i class="ti ti-clipboard-list"></i> Órdenes de trabajo</div>
     <div class="nav-item" onclick="showSection('fabricacion')" id="nav-fabricacion"><i class="ti ti-tool"></i> Fabricación</div>
     <div class="nav-item" onclick="showSection('clientes')" id="nav-clientes"><i class="ti ti-users"></i> Clientes</div>
-    <div class="nav-item" onclick="showSection('stock')" id="nav-stock"><i class="ti ti-package"></i> Stock</div>
+    <div class="nav-item" onclick="showSection('stock')" id="nav-stock"><i class="ti ti-package"></i><span class="nav-label">Stock</span></div>
+    <div class="nav-item" onclick="showSection('trabajos')" id="nav-trabajos"><i class="ti ti-tools"></i><span class="nav-label">Trabajos</span></div>
     <div class="nav-item" onclick="showSection('presupuestos')" id="nav-presupuestos"><i class="ti ti-file-invoice"></i> Presupuestos</div>
     <div class="divider"></div>
     <div class="nav-section-label">GLAM</div>
@@ -399,6 +400,19 @@ tr:hover td{background:rgba(196,149,106,0.04);}
             </div>
             <div id="stock-precios-content" style="padding:1rem;"></div>
           </div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN TRABAJOS -->
+      <div id="section-trabajos" class="section-hidden">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;background:var(--cream);border-radius:8px;padding:8px 12px;border:0.5px solid var(--border-light);">
+          <div style="font-size:12px;color:var(--text-muted);">Última actualización: <strong id="trabajos-fecha-update" style="color:var(--text-dark);">—</strong></div>
+          <button class="btn" onclick="actualizarFechaTrabajos()" style="font-size:11px;padding:4px 10px;"><i class="ti ti-calendar-check"></i> Actualizar fecha hoy</button>
+        </div>
+        <div class="card">
+          <div class="card-header"><span>Lista de trabajos</span></div>
+          <table><thead><tr><th>Descripción del trabajo</th><th>Precio</th><th></th></tr></thead>
+          <tbody id="trabajos-table"><tr><td colspan="3" class="empty">Sin trabajos cargados.</td></tr></tbody></table>
         </div>
       </div>
 
@@ -536,6 +550,7 @@ tr:hover td{background:rgba(196,149,106,0.04);}
         <h4>Trabajos y materiales</h4>
         <div class="item-add-grid">
           <select id="new-tipo" onchange="toggleStockSelect('new')"><option value="trabajo">Trabajo</option><option value="material">Material stock</option><option value="material-libre">Material libre</option><option value="material-glam">Material GLAM</option></select>
+          <div id="new-trabajo-wrap"><select id="new-trabajo-sel" onchange="seleccionarTrabajo()"><option value="">— Elegir trabajo —</option></select></div>
           <div id="new-desc-wrap"><input type="text" id="new-desc" placeholder="Descripción..."></div>
           <div id="new-stock-wrap" style="display:none;"><select id="new-stock-sel"></select></div>
           <input type="number" id="new-qty" placeholder="Cant." min="1" value="1" style="width:64px;">
@@ -814,6 +829,18 @@ tr:hover td{background:rgba(196,149,106,0.04);}
   </div>
 </div>
 
+<!-- MODAL NUEVO TRABAJO -->
+<div class="modal-bg" id="modal-trabajo">
+  <div class="modal">
+    <div class="modal-header"><h3 id="trabajo-modal-title">Nuevo trabajo</h3><button class="action-btn" onclick="closeModal('modal-trabajo')"><i class="ti ti-x"></i></button></div>
+    <div class="modal-body">
+      <div class="field"><label>Descripción</label><input type="text" id="t-desc" placeholder="Ej: Calibración guitarra eléctrica"></div>
+      <div class="field"><label>Precio ($)</label><input type="number" id="t-precio" placeholder="0" min="0"></div>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal('modal-trabajo')">Cancelar</button><button class="btn btn-primary" onclick="guardarTrabajo()">Guardar</button></div>
+  </div>
+</div>
+
 <!-- MODAL EDITAR STOCK -->
 <div class="modal-bg" id="modal-editar-stock">
   <div class="modal modal-wide">
@@ -965,6 +992,7 @@ const sectionConfig={
   fabricacion:{title:'Fabricación',btnLabel:'Nuevo instrumento',btnAction:'openFabModal()',btnClass:'btn-primary'},
   clientes:{title:'Clientes',btnLabel:'Nuevo cliente',btnAction:'openClienteModal()',btnClass:'btn-primary'},
   stock:{title:'Stock',btnLabel:'Agregar ítem',btnAction:'openStockModal()',btnClass:'btn-primary'},
+  trabajos:{title:'Trabajos',btnLabel:'Nuevo trabajo',btnAction:'openTrabajoModal()',btnClass:'btn-primary'},
   presupuestos:{title:'Presupuestos',btnLabel:'Nuevo presupuesto',btnAction:'openPresupuestoModal()',btnClass:'btn-primary'},
   glam:{title:'Panel GLAM',btnLabel:'Nueva orden GLAM',btnAction:'openGlamOrden()',btnClass:'btn-glam'},
   'glam-remitos':{title:'Remitos GLAM',btnLabel:'Nueva visita',btnAction:'openRemitoModal()',btnClass:'btn-glam'}
@@ -997,7 +1025,7 @@ async function saveAll(){
   if(!db){ind.className='save-indicator';ind.innerHTML='<i class="ti ti-cloud-off"></i> Sin conexión';return;}
   ind.className='save-indicator saving';ind.innerHTML='<i class="ti ti-loader"></i> Guardando...';
   try{
-    await db.collection('taller').doc(DB_DOC).set({ordenes,clientes,stock,presupuestos,fabricaciones,remitos,ordenCounter,presupuestoCounter,fabCounter,remitoCounter,categorias,marcas});
+    await db.collection('taller').doc(DB_DOC).set({ordenes,clientes,stock,presupuestos,fabricaciones,remitos,ordenCounter,presupuestoCounter,fabCounter,remitoCounter,categorias,marcas,trabajos,trabajosCounter,trabajosFecha});
     ind.className='save-indicator saved';ind.innerHTML='<i class="ti ti-check"></i> Datos guardados';
   }catch(e){
     console.error(e);
@@ -1018,6 +1046,9 @@ async function loadAll(){
       fabCounter=d.fabCounter||1;remitoCounter=d.remitoCounter||1;
       if(d.categorias&&d.categorias.length)categorias=d.categorias;
       if(d.marcas&&d.marcas.length)marcas=d.marcas;
+      if(d.trabajos&&d.trabajos.length)trabajos=d.trabajos;
+      if(d.trabajosCounter)trabajosCounter=d.trabajosCounter;
+      if(d.trabajosFecha)trabajosFecha=d.trabajosFecha;
     }
   }catch(e){console.error('Error cargando datos:',e);}
   renderAll();
@@ -1028,7 +1059,7 @@ async function loadAll(){
   },300);
 }
 
-function renderAll(){renderOrdenes();renderFab();renderClientes();renderStock();renderPresupuestos();renderGlam();renderRemitos();}
+function renderAll(){renderOrdenes();renderFab();renderClientes();renderStock();renderTrabajos();renderPresupuestos();renderGlam();renderRemitos();}
 
 function showSection(s){
   document.getElementById('section-'+currentSection).classList.add('section-hidden');
@@ -1160,6 +1191,76 @@ function openOrdenModal(){newFotosData=[];newItems=[];populateClienteSelect('o-c
 function openGlamOrden(){openOrdenModal();document.getElementById('o-origen').value='glam';}
 function openFabModal(){populateClienteSelect('f-cliente');document.getElementById('modal-fab').classList.add('open');}
 function openClienteModal(){document.getElementById('modal-cliente').classList.add('open');}
+// MÓDULO TRABAJOS
+let trabajos=[
+  {id:1,desc:'Calibración criolla y acústica',precio:60000},
+  {id:2,desc:'Calibración eléctrica y bajo',precio:70000},
+  {id:3,desc:'Calibración con puente floyd',precio:85000},
+  {id:4,desc:'Rectificado trastes',precio:60000},
+  {id:5,desc:'Pickguard madera',precio:50000},
+  {id:6,desc:'Reentrastado completo (reentrastado, trastes, rectificado y calibración)',precio:280000},
+  {id:7,desc:'Reparación puente criolla',precio:50000},
+  {id:8,desc:'Reparación pala criolla (común)',precio:50000},
+  {id:9,desc:'Blindaje completo',precio:60000},
+  {id:10,desc:'Cejilla hueso o ébano c/u',precio:40000},
+  {id:11,desc:'Instalación pre',precio:70000},
+];
+let trabajosCounter=12;
+let trabajosFecha='';
+let _editTrabajoIdx=null;
+
+function renderTrabajos(){
+  const el=document.getElementById('trabajos-fecha-update');
+  if(el)el.textContent=trabajosFecha||'—';
+  const tbody=document.getElementById('trabajos-table');
+  if(!tbody)return;
+  if(!trabajos.length){tbody.innerHTML='<tr><td colspan="3" class="empty">Sin trabajos cargados.</td></tr>';return;}
+  tbody.innerHTML=trabajos.map((t,i)=>`<tr>
+    <td style="font-weight:500;color:var(--text-dark);">${t.desc}</td>
+    <td style="font-weight:600;">$ ${t.precio.toLocaleString('es-AR')}</td>
+    <td style="display:flex;gap:3px;">
+      <button class="action-btn" onclick="editarTrabajo(${i})" title="Editar"><i class="ti ti-edit"></i></button>
+      <button class="action-btn" onclick="deleteTrabajo(${i})"><i class="ti ti-trash"></i></button>
+    </td>
+  </tr>`).join('');
+}
+function openTrabajoModal(){
+  _editTrabajoIdx=null;
+  document.getElementById('trabajo-modal-title').textContent='Nuevo trabajo';
+  document.getElementById('t-desc').value='';
+  document.getElementById('t-precio').value='';
+  document.getElementById('modal-trabajo').classList.add('open');
+}
+function editarTrabajo(i){
+  const t=trabajos[i];if(!t)return;
+  _editTrabajoIdx=i;
+  document.getElementById('trabajo-modal-title').textContent='Editar trabajo';
+  document.getElementById('t-desc').value=t.desc;
+  document.getElementById('t-precio').value=t.precio;
+  document.getElementById('modal-trabajo').classList.add('open');
+}
+function guardarTrabajo(){
+  const desc=document.getElementById('t-desc').value.trim();
+  const precio=parseFloat(document.getElementById('t-precio').value)||0;
+  if(!desc){alert('Ingresá la descripción.');return;}
+  if(_editTrabajoIdx!==null){
+    trabajos[_editTrabajoIdx].desc=desc;
+    trabajos[_editTrabajoIdx].precio=precio;
+  } else {
+    trabajos.push({id:trabajosCounter++,desc,precio});
+  }
+  closeModal('modal-trabajo');renderTrabajos();scheduleSave();
+}
+function deleteTrabajo(i){
+  confirmar('¿Eliminar este trabajo?','Esta acción no se puede deshacer.',()=>{
+    trabajos.splice(i,1);renderTrabajos();scheduleSave();
+  });
+}
+function actualizarFechaTrabajos(){
+  trabajosFecha=new Date().toLocaleDateString('es-AR');
+  renderTrabajos();scheduleSave();
+}
+
 // NUEVO MÓDULO REMITOS GLAM
 let grOrdenes=[]; // órdenes seleccionadas para esta visita
 let grCompras=[]; // compras en GLAM
@@ -1407,7 +1508,34 @@ function populateNewStockSelect(){
     }
   };
 }
-function toggleStockSelect(prefix){const tipo=document.getElementById(prefix+'-tipo').value;document.getElementById(prefix+'-desc-wrap').style.display=tipo==='material'?'none':'block';document.getElementById(prefix+'-stock-wrap').style.display=tipo==='material'?'block':'none';document.getElementById(prefix+'-precio').value='';}
+function toggleStockSelect(prefix){
+  const tipo=document.getElementById(prefix+'-tipo').value;
+  const esMaterial=tipo==='material';
+  const esTrabajo=tipo==='trabajo';
+  const descWrap=document.getElementById(prefix+'-desc-wrap');
+  const stockWrap=document.getElementById(prefix+'-stock-wrap');
+  const trabajoWrap=document.getElementById(prefix+'-trabajo-wrap');
+  if(descWrap)descWrap.style.display=esMaterial?'none':'block';
+  if(stockWrap)stockWrap.style.display=esMaterial?'block':'none';
+  if(trabajoWrap){
+    trabajoWrap.style.display=esTrabajo?'block':'none';
+    if(esTrabajo){
+      // Poblar selector de trabajos
+      const sel=document.getElementById(prefix+'-trabajo-sel');
+      if(sel){sel.innerHTML='<option value="">— Elegir trabajo —</option>'+trabajos.map(t=>`<option value="${t.id}">${t.desc} — $${t.precio.toLocaleString('es-AR')}</option>`).join('');}
+    }
+  }
+  document.getElementById(prefix+'-precio').value='';
+}
+function seleccionarTrabajo(){
+  const sel=document.getElementById('new-trabajo-sel');
+  const id=parseInt(sel.value);
+  if(isNaN(id))return;
+  const t=trabajos.find(t=>t.id===id);
+  if(!t)return;
+  document.getElementById('new-desc').value=t.desc;
+  document.getElementById('new-precio').value=t.precio;
+}
 function calcTotal(items){return(items||[]).reduce((s,it)=>s+it.qty*it.precio,0);}
 function calcCobrado(cobros){return(cobros||[]).reduce((s,c)=>s+c.monto,0);}
 function badgeClass(e){if(e==='Cobrado')return 'badge-cobrado';return e==='Pendiente'?'badge-pending':e==='En proceso'?'badge-progress':e==='Listo'||e==='Terminado'?'badge-done':'badge-delivered';}
