@@ -309,6 +309,10 @@ tr:hover td{background:rgba(196,149,106,0.04);}
     <div class="nav-item glam-nav" onclick="showSection('glam')" id="nav-glam"><i class="ti ti-building-store"></i> Panel GLAM</div>
     <div class="nav-item glam-nav" onclick="showSection('glam-remitos')" id="nav-glam-remitos"><i class="ti ti-truck"></i> Remitos</div>
     <div class="divider"></div>
+    <div class="nav-section-label" style="color:#0EA5E9;">Padel</div>
+    <div class="nav-item" onclick="showSection('padel')" id="nav-padel" style="--nav-active:#0EA5E9;"><i class="ti ti-racket"></i> Reparaciones</div>
+    <div class="nav-item" onclick="showSection('padel-clientes')" id="nav-padel-clientes" style="--nav-active:#0EA5E9;"><i class="ti ti-users"></i> Clientes padel</div>
+    <div class="divider"></div>
     <div class="sidebar-footer">
       <p>© Joaquin Rossi Luthier</p>
       <div class="save-indicator saved" id="save-indicator"><i class="ti ti-check"></i> Datos guardados</div>
@@ -521,11 +525,32 @@ tr:hover td{background:rgba(196,149,106,0.04);}
           <tbody id="remitos-table"><tr><td colspan="6" class="empty">No hay visitas registradas.</td></tr></tbody></table>
         </div>
       </div>
+
+      <!-- SECCIÓN PADEL REPARACIONES -->
+      <div id="section-padel" class="section-hidden">
+        <div class="card">
+          <div class="card-header" style="background:#0EA5E9;color:#fff;"><span>Reparaciones de paletas</span></div>
+          <table><thead><tr style="background:#E0F2FE;"><th>Fecha</th><th>Cliente</th><th>Celular</th><th>Reparaciones</th><th>Total</th><th>Estado</th><th>Cobro</th><th></th></tr></thead>
+          <tbody id="padel-table"><tr><td colspan="8" class="empty">Sin reparaciones.</td></tr></tbody></table>
+        </div>
+      </div>
+
+      <!-- SECCIÓN PADEL CLIENTES -->
+      <div id="section-padel-clientes" class="section-hidden">
+        <div class="filtros-bar" style="margin-bottom:1rem;">
+          <input type="text" id="padel-clientes-buscar" placeholder="🔍 Buscar cliente padel..." style="flex:1;font-size:12px;font-family:'Inter',sans-serif;border:0.5px solid var(--border);border-radius:6px;background:var(--parchment);color:var(--text-dark);padding:5px 8px;height:30px;">
+          <span id="padel-clientes-count" class="f-count"></span>
+        </div>
+        <div class="card">
+          <div class="card-header" style="background:#0EA5E9;color:#fff;"><span>Clientes padel</span></div>
+          <table><thead><tr style="background:#E0F2FE;"><th>Nombre</th><th>Celular</th><th>Reparaciones</th><th></th></tr></thead>
+          <tbody id="padel-clientes-table"><tr><td colspan="4" class="empty">Sin clientes.</td></tr></tbody></table>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
-
-<!-- MODALES -->
 <div class="modal-bg" id="modal-orden">
   <div class="modal modal-wide">
     <div class="modal-header"><h3>Nueva orden de trabajo</h3><button class="action-btn" onclick="closeModal('modal-orden')"><i class="ti ti-x"></i></button></div>
@@ -761,6 +786,65 @@ tr:hover td{background:rgba(196,149,106,0.04);}
     </div>
   </div>
 </div>
+<!-- MODAL NUEVA REPARACIÓN PADEL -->
+<div class="modal-bg" id="modal-padel">
+  <div class="modal modal-wide">
+    <div class="modal-header" style="background:#0EA5E9;"><h3 style="color:#fff;">Nueva reparación</h3><button class="action-btn" onclick="closeModal('modal-padel')" style="color:#fff;"><i class="ti ti-x"></i></button></div>
+    <div class="modal-body">
+      <div class="field"><label>Fecha</label><input type="date" id="pd-fecha"></div>
+      <div class="row2">
+        <div class="field"><label>Cliente</label>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <select id="pd-cliente" style="flex:1;"></select>
+            <button class="btn" onclick="openPadelClienteModal()" title="Nuevo cliente" style="padding:7px 10px;flex-shrink:0;background:#0EA5E9;color:#fff;border-color:#0EA5E9;"><i class="ti ti-user-plus"></i></button>
+          </div>
+        </div>
+        <div class="field"><label>Celular</label><input type="text" id="pd-cel" placeholder="—"></div>
+      </div>
+      <div class="items-section">
+        <h4>Reparaciones</h4>
+        <div id="pd-items-list"></div>
+        <div style="display:grid;grid-template-columns:1fr auto auto;gap:6px;margin-top:8px;align-items:end;">
+          <input type="text" id="pd-item-desc" placeholder="Descripción del arreglo..." style="font-size:12px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--cream);color:var(--text-dark);padding:7px 10px;">
+          <input type="number" id="pd-item-precio" placeholder="$" min="0" style="width:80px;font-size:12px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--cream);color:var(--text-dark);padding:7px 8px;">
+          <button class="btn" onclick="addPadelItem()" style="padding:7px 10px;background:#0EA5E9;color:#fff;border-color:#0EA5E9;"><i class="ti ti-plus"></i></button>
+        </div>
+        <div class="field" style="margin-top:8px;"><label>Precio total (si es distinto a la suma)</label><input type="number" id="pd-precio-total" placeholder="Dejar vacío para usar la suma" min="0"></div>
+        <div class="total-bar" id="pd-total-bar" style="display:none;background:#E0F2FE;">
+          <span class="total-bar-label">Total</span>
+          <span class="total-bar-amount" id="pd-total">$0</span>
+        </div>
+      </div>
+      <div class="field"><label>Fotos del análisis</label><input type="file" id="pd-fotos" accept="image/*" multiple onchange="handlePadelFotos(event)"></div>
+      <div id="pd-fotos-preview" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+      <div class="field"><label>Notas</label><textarea id="pd-notas" placeholder="Observaciones..."></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal('modal-padel')">Cancelar</button><button class="btn" onclick="savePadelRep()" style="background:#0EA5E9;color:#fff;border-color:#0EA5E9;">Guardar reparación</button></div>
+  </div>
+</div>
+
+<!-- MODAL NUEVO CLIENTE PADEL -->
+<div class="modal-bg" id="modal-padel-cliente">
+  <div class="modal">
+    <div class="modal-header" style="background:#0EA5E9;"><h3 style="color:#fff;">Nuevo cliente padel</h3><button class="action-btn" onclick="closeModal('modal-padel-cliente')" style="color:#fff;"><i class="ti ti-x"></i></button></div>
+    <div class="modal-body">
+      <div class="field"><label>Nombre</label><input type="text" id="pdc-nombre" placeholder="Nombre del cliente"></div>
+      <div class="field"><label>Celular</label><input type="text" id="pdc-cel" placeholder="Número de celular"></div>
+      <div class="field"><label>Notas</label><textarea id="pdc-notas" placeholder="Opcional..."></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal('modal-padel-cliente')">Cancelar</button><button class="btn" onclick="savePadelCliente()" style="background:#0EA5E9;color:#fff;border-color:#0EA5E9;">Guardar</button></div>
+  </div>
+</div>
+
+<!-- MODAL DETALLE PADEL -->
+<div class="modal-bg" id="modal-padel-detalle">
+  <div class="modal modal-wide">
+    <div class="modal-header" style="background:#0EA5E9;"><h3 style="color:#fff;" id="padel-det-title">Reparación</h3><button class="action-btn" onclick="closeModal('modal-padel-detalle')" style="color:#fff;"><i class="ti ti-x"></i></button></div>
+    <div class="modal-body" id="padel-det-body"></div>
+    <div class="modal-footer" id="padel-det-footer"></div>
+  </div>
+</div>
+
 <!-- MODAL CONFIRMAR BORRAR -->
 <div class="modal-bg" id="modal-confirmar">
   <div class="confirm-modal">
@@ -999,7 +1083,9 @@ const sectionConfig={
   trabajos:{title:'Trabajos',btnLabel:'Nuevo trabajo',btnAction:'openTrabajoModal()',btnClass:'btn-primary'},
   presupuestos:{title:'Presupuestos',btnLabel:'Nuevo presupuesto',btnAction:'openPresupuestoModal()',btnClass:'btn-primary'},
   glam:{title:'Panel GLAM',btnLabel:'Nueva orden GLAM',btnAction:'openGlamOrden()',btnClass:'btn-glam'},
-  'glam-remitos':{title:'Remitos GLAM',btnLabel:'Nueva visita',btnAction:'openRemitoModal()',btnClass:'btn-glam'}
+  'glam-remitos':{title:'Remitos GLAM',btnLabel:'Nueva visita',btnAction:'openRemitoModal()',btnClass:'btn-glam'},
+  padel:{title:'Padel — Reparaciones',btnLabel:'Nueva reparación',btnAction:'openPadelModal()',btnClass:''},
+  'padel-clientes':{title:'Padel — Clientes',btnLabel:'Nuevo cliente',btnAction:'openPadelClienteModal()',btnClass:''}
 };
 
 // LOGIN
@@ -1029,7 +1115,7 @@ async function saveAll(){
   if(!db){ind.className='save-indicator';ind.innerHTML='<i class="ti ti-cloud-off"></i> Sin conexión';return;}
   ind.className='save-indicator saving';ind.innerHTML='<i class="ti ti-loader"></i> Guardando...';
   try{
-    await db.collection('taller').doc(DB_DOC).set({ordenes,clientes,stock,presupuestos,fabricaciones,remitos,ordenCounter,presupuestoCounter,fabCounter,remitoCounter,categorias,marcas,trabajos,trabajosCounter,trabajosFecha});
+    await db.collection('taller').doc(DB_DOC).set({ordenes,clientes,stock,presupuestos,fabricaciones,remitos,ordenCounter,presupuestoCounter,fabCounter,remitoCounter,categorias,marcas,trabajos,trabajosCounter,trabajosFecha,padelClientes,padelReps,padelRepCounter});
     ind.className='save-indicator saved';ind.innerHTML='<i class="ti ti-check"></i> Datos guardados';
   }catch(e){
     console.error(e);
@@ -1053,6 +1139,9 @@ async function loadAll(){
       if(d.trabajos&&d.trabajos.length)trabajos=d.trabajos;
       if(d.trabajosCounter)trabajosCounter=d.trabajosCounter;
       if(d.trabajosFecha)trabajosFecha=d.trabajosFecha;
+      if(d.padelClientes)padelClientes=d.padelClientes;
+      if(d.padelReps)padelReps=d.padelReps;
+      if(d.padelRepCounter)padelRepCounter=d.padelRepCounter;
     }
   }catch(e){console.error('Error cargando datos:',e);}
   renderAll();
@@ -1063,7 +1152,7 @@ async function loadAll(){
   },300);
 }
 
-function renderAll(){renderOrdenes();renderFab();renderClientes();renderStock();renderTrabajos();renderPresupuestos();renderGlam();renderRemitos();}
+function renderAll(){renderOrdenes();renderFab();renderClientes();renderStock();renderTrabajos();renderPresupuestos();renderGlam();renderRemitos();renderPadelReps();renderPadelClientes();}
 
 function showSection(s){
   document.getElementById('section-'+currentSection).classList.add('section-hidden');
@@ -1273,6 +1362,268 @@ function deleteTrabajo(i){
 function actualizarFechaTrabajos(){
   trabajosFecha=new Date().toLocaleDateString('es-AR');
   renderTrabajos();scheduleSave();
+}
+
+// MÓDULO PADEL
+let padelClientes=[];
+let padelReps=[];
+let padelRepCounter=1;
+let pdItems=[];
+let pdFotosData=[];
+
+function openPadelModal(){
+  pdItems=[];pdFotosData=[];
+  document.getElementById('pd-fecha').value=new Date().toISOString().split('T')[0];
+  document.getElementById('pd-cel').value='';
+  document.getElementById('pd-notas').value='';
+  document.getElementById('pd-item-desc').value='';
+  document.getElementById('pd-item-precio').value='';
+  document.getElementById('pd-precio-total').value='';
+  document.getElementById('pd-fotos-preview').innerHTML='';
+  populatePadelClienteSelect();
+  renderPdItems();
+  document.getElementById('modal-padel').classList.add('open');
+}
+function populatePadelClienteSelect(){
+  const sel=document.getElementById('pd-cliente');if(!sel)return;
+  // Clientes padel + opción de cargar desde luthería
+  sel.innerHTML='<option value="">Seleccioná un cliente</option>'+
+    padelClientes.map(c=>`<option value="${c.nombre}" data-cel="${c.cel||''}">${c.nombre}</option>`).join('')+
+    '<option disabled>───── Clientes luthería ─────</option>'+
+    clientes.map(c=>`<option value="${c.nombre}" data-cel="${c.tel||''}">${c.nombre}</option>`).join('');
+  sel.onchange=()=>{
+    const opt=sel.options[sel.selectedIndex];
+    document.getElementById('pd-cel').value=opt&&opt.dataset.cel||'';
+  };
+}
+function openPadelClienteModal(){
+  document.getElementById('pdc-nombre').value='';
+  document.getElementById('pdc-cel').value='';
+  document.getElementById('pdc-notas').value='';
+  document.getElementById('modal-padel-cliente').classList.add('open');
+}
+function savePadelCliente(){
+  const nombre=document.getElementById('pdc-nombre').value.trim();
+  if(!nombre){alert('Ingresá el nombre.');return;}
+  padelClientes.push({nombre,cel:document.getElementById('pdc-cel').value,notas:document.getElementById('pdc-notas').value});
+  closeModal('modal-padel-cliente');
+  renderPadelClientes();scheduleSave();
+  // Si modal padel está abierto, actualizar selector
+  populatePadelClienteSelect();
+  const sel=document.getElementById('pd-cliente');
+  if(sel)sel.value=nombre;
+  const celInp=document.getElementById('pd-cel');
+  if(celInp)celInp.value=document.getElementById('pdc-cel').value;
+}
+function addPadelItem(){
+  const desc=document.getElementById('pd-item-desc').value.trim();
+  const precio=parseFloat(document.getElementById('pd-item-precio').value)||0;
+  if(!desc){alert('Ingresá la descripción.');return;}
+  pdItems.push({desc,precio});
+  renderPdItems();
+  document.getElementById('pd-item-desc').value='';
+  document.getElementById('pd-item-precio').value='';
+}
+function removePdItem(i){pdItems.splice(i,1);renderPdItems();}
+function renderPdItems(){
+  const el=document.getElementById('pd-items-list');
+  const bar=document.getElementById('pd-total-bar');
+  if(!pdItems.length){el.innerHTML='<p style="font-size:12px;color:var(--text-muted);font-style:italic;padding:4px 0;">Sin reparaciones.</p>';bar.style.display='none';return;}
+  el.innerHTML=pdItems.map((it,i)=>`<div class="item-row">
+    <span style="display:inline-block;padding:2px 6px;border-radius:4px;font-size:10px;background:#E0F2FE;color:#0369A1;border:0.5px solid #7DD3FC;">Reparación</span>
+    <span class="item-row-desc">${it.desc}</span>
+    <span class="item-row-price">$${it.precio.toLocaleString('es-AR')}</span>
+    <button class="action-btn" onclick="removePdItem(${i})"><i class="ti ti-trash"></i></button>
+  </div>`).join('');
+  const suma=pdItems.reduce((s,it)=>s+it.precio,0);
+  bar.style.display='flex';
+  document.getElementById('pd-total').textContent='$'+suma.toLocaleString('es-AR');
+}
+function handlePadelFotos(e){
+  const files=e.target.files;if(!files.length)return;
+  Array.from(files).forEach(f=>{
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      pdFotosData.push(ev.target.result);
+      renderPdFotosPreview();
+    };
+    reader.readAsDataURL(f);
+  });
+}
+function removePdFoto(i){pdFotosData.splice(i,1);renderPdFotosPreview();}
+function renderPdFotosPreview(){
+  document.getElementById('pd-fotos-preview').innerHTML=pdFotosData.map((f,i)=>
+    `<div style="position:relative;width:60px;height:60px;border-radius:6px;overflow:hidden;border:0.5px solid var(--border-light);">
+      <img src="${f}" style="width:100%;height:100%;object-fit:cover;">
+      <button class="action-btn" onclick="removePdFoto(${i})" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.5);color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;padding:0;"><i class="ti ti-x"></i></button>
+    </div>`).join('');
+}
+function savePadelRep(){
+  const cliente=document.getElementById('pd-cliente').value;
+  if(!cliente){alert('Seleccioná un cliente.');return;}
+  if(!pdItems.length){alert('Agregá al menos una reparación.');return;}
+  const suma=pdItems.reduce((s,it)=>s+it.precio,0);
+  const totalCustom=parseFloat(document.getElementById('pd-precio-total').value)||0;
+  const total=totalCustom>0?totalCustom:suma;
+  padelReps.push({
+    id:padelRepCounter++,
+    fecha:document.getElementById('pd-fecha').value,
+    cliente,cel:document.getElementById('pd-cel').value,
+    items:pdItems.map(it=>({...it})),
+    total,
+    fotos:[...pdFotosData],
+    notas:document.getElementById('pd-notas').value,
+    cobros:[],
+    estado:'Pendiente'
+  });
+  pdItems=[];pdFotosData=[];
+  closeModal('modal-padel');
+  renderPadelReps();scheduleSave();
+}
+function renderPadelReps(){
+  const tbody=document.getElementById('padel-table');if(!tbody)return;
+  if(!padelReps.length){tbody.innerHTML='<tr><td colspan="8" class="empty">Sin reparaciones.</td></tr>';return;}
+  tbody.innerHTML=[...padelReps].reverse().map(r=>{
+    const cobrado=r.cobros?r.cobros.reduce((s,c)=>s+c.monto,0):0;
+    const saldo=Math.max(0,r.total-cobrado);
+    const cobroTag=cobrado===0?'':`<span class="badge ${cobrado>=r.total?'badge-cobrado':'badge-parcial'}">${cobrado>=r.total?'Cobrado':'Seña'}</span>`;
+    return`<tr>
+      <td style="font-size:12px;color:var(--text-muted);">${r.fecha}</td>
+      <td style="font-weight:500;color:var(--text-dark);">${r.cliente}</td>
+      <td style="font-size:12px;">${r.cel||'—'}</td>
+      <td style="font-size:12px;">${r.items.map(it=>it.desc).join(', ')}</td>
+      <td style="font-weight:500;">$${r.total.toLocaleString('es-AR')}</td>
+      <td><button class="badge ${r.estado==='Cobrado'?'badge-cobrado':r.estado==='Listo'?'badge-done':r.estado==='En proceso'?'badge-progress':'badge-pending'}" onclick="changePadelEstado(${r.id})">${r.estado}</button></td>
+      <td>${cobroTag}</td>
+      <td style="display:flex;gap:3px;">
+        <button class="action-btn" onclick="openPadelDetalle(${r.id})"><i class="ti ti-eye"></i></button>
+        <button class="action-btn" onclick="compartirPadel(${r.id})" style="color:#25D366;"><i class="ti ti-share"></i></button>
+        <button class="action-btn" onclick="deletePadelRep(${r.id})"><i class="ti ti-trash"></i></button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+function changePadelEstado(id){
+  const estados=['Pendiente','En proceso','Listo','Entregado','Cobrado'];
+  const r=padelReps.find(r=>r.id===id);if(!r)return;
+  r.estado=estados[(estados.indexOf(r.estado)+1)%estados.length];
+  renderPadelReps();scheduleSave();
+}
+function deletePadelRep(id){
+  confirmar('¿Eliminar esta reparación?','Esta acción no se puede deshacer.',()=>{
+    padelReps=padelReps.filter(r=>r.id!==id);renderPadelReps();scheduleSave();
+  });
+}
+function openPadelDetalle(id){
+  const r=padelReps.find(r=>r.id===id);if(!r)return;
+  const cobrado=r.cobros?r.cobros.reduce((s,c)=>s+c.monto,0):0;
+  const saldo=Math.max(0,r.total-cobrado);
+  document.getElementById('padel-det-title').textContent=`Reparación #${r.id}`;
+  document.getElementById('padel-det-body').innerHTML=`
+    <div class="det-section"><h4>Cliente</h4><div class="det-grid">
+      <div class="det-field"><label>Nombre</label><p>${r.cliente}</p></div>
+      <div class="det-field"><label>Celular</label><p>${r.cel||'—'}</p></div>
+      <div class="det-field"><label>Fecha</label><p>${r.fecha}</p></div>
+      <div class="det-field"><label>Estado</label><p>${r.estado}</p></div>
+    </div></div>
+    <div class="det-section"><h4>Reparaciones</h4>
+      ${r.items.map(it=>`<div class="item-row"><span style="display:inline-block;padding:2px 6px;border-radius:4px;font-size:10px;background:#E0F2FE;color:#0369A1;">Reparación</span><span class="item-row-desc">${it.desc}</span><span class="item-row-price">$${it.precio.toLocaleString('es-AR')}</span></div>`).join('')}
+      <div class="total-bar" style="background:#E0F2FE;"><span class="total-bar-label">Total</span><span class="total-bar-amount">$${r.total.toLocaleString('es-AR')}</span></div>
+    </div>
+    ${r.fotos&&r.fotos.length?`<div class="det-section"><h4>Fotos</h4><div style="display:flex;gap:8px;flex-wrap:wrap;">${r.fotos.map(f=>`<img src="${f}" style="width:120px;height:120px;object-fit:cover;border-radius:8px;border:0.5px solid var(--border-light);cursor:pointer;" onclick="openLightbox('${f}')">`).join('')}</div></div>`:''}
+    ${r.notas?`<div class="det-section"><h4>Notas</h4><p style="font-size:13px;color:var(--text-muted);">${r.notas}</p></div>`:''}
+    <div class="det-section"><h4>Cobros</h4>
+      ${r.estado==='Cobrado'?
+        `<div style="background:#E8F2E8;border:0.5px solid #7AB87A;border-radius:8px;padding:12px;text-align:center;">
+          <i class="ti ti-circle-check" style="font-size:24px;color:#2A5A2A;display:block;margin-bottom:4px;"></i>
+          <p style="font-size:14px;font-weight:600;color:#2A5A2A;">Completamente cobrada</p>
+        </div>`:
+        `<div style="display:flex;gap:1rem;margin-bottom:8px;">
+          <div style="font-size:12px;"><span style="color:var(--text-muted);">Cobrado:</span> <strong style="color:#2A5A2A;">$${cobrado.toLocaleString('es-AR')}</strong></div>
+          <div style="font-size:12px;"><span style="color:var(--text-muted);">Saldo:</span> <strong style="color:#C0392B;">$${saldo.toLocaleString('es-AR')}</strong></div>
+        </div>
+        ${r.cobros&&r.cobros.length?r.cobros.map((c,i)=>`<div class="cobro-row"><div><span>$${c.monto.toLocaleString('es-AR')}</span> <small>— ${c.fecha}</small></div><button class="action-btn" onclick="deletePadelCobro(${r.id},${i})"><i class="ti ti-trash"></i></button></div>`).join(''):''}
+        ${saldo>0?`<div class="cobro-add-row"><input type="number" id="pd-cobro-monto-${r.id}" placeholder="Monto..." min="0"><button class="btn" onclick="registrarPadelCobro(${r.id})" style="background:#0EA5E9;color:#fff;border-color:#0EA5E9;"><i class="ti ti-coin"></i> Registrar</button></div>`:''}`}
+    </div>`;
+  document.getElementById('padel-det-footer').innerHTML=`
+    <button class="btn" onclick="guardarYCerrarPadel(${r.id})" style="background:#0EA5E9;color:#fff;border-color:#0EA5E9;"><i class="ti ti-device-floppy"></i> Guardar y cerrar</button>
+    <button class="btn" onclick="compartirPadel(${r.id})" style="background:#25D366;color:#fff;border-color:#25D366;"><i class="ti ti-share"></i> Compartir</button>`;
+  document.getElementById('modal-padel-detalle').classList.add('open');
+}
+function guardarYCerrarPadel(id){scheduleSave();closeModal('modal-padel-detalle');renderPadelReps();}
+function registrarPadelCobro(id){
+  const r=padelReps.find(r=>r.id===id);if(!r)return;
+  const monto=parseFloat(document.getElementById('pd-cobro-monto-'+id).value)||0;
+  if(monto<=0){alert('Ingresá un monto mayor a 0.');return;}
+  if(!r.cobros)r.cobros=[];
+  const cobrado=r.cobros.reduce((s,c)=>s+c.monto,0);
+  if(monto>r.total-cobrado+0.01){alert('Supera el saldo.');return;}
+  const esPrimero=r.cobros.length===0;
+  r.cobros.push({monto,fecha:new Date().toLocaleDateString('es-AR')});
+  const nuevoCobrado=r.cobros.reduce((s,c)=>s+c.monto,0);
+  if(nuevoCobrado>=r.total)r.estado='Cobrado';
+  else if(esPrimero&&r.estado==='Pendiente')r.estado='En proceso';
+  scheduleSave();renderPadelReps();openPadelDetalle(id);
+}
+function deletePadelCobro(id,i){
+  const r=padelReps.find(r=>r.id===id);if(!r||!r.cobros)return;
+  r.cobros.splice(i,1);scheduleSave();openPadelDetalle(id);
+}
+async function compartirPadel(id){
+  const r=padelReps.find(r=>r.id===id);if(!r)return;
+  const cobrado=r.cobros?r.cobros.reduce((s,c)=>s+c.monto,0):0;
+  const saldo=Math.max(0,r.total-cobrado);
+  let texto=`🏓 *Reparación de paleta — Joaquin Rossi*\n\n`;
+  texto+=`Cliente: ${r.cliente}\n\n`;
+  texto+=`*Detalle:*\n`;
+  r.items.forEach(it=>{texto+=`• ${it.desc}: $${it.precio.toLocaleString('es-AR')}\n`;});
+  texto+=`\n*Total: $${r.total.toLocaleString('es-AR')}*\n`;
+  if(cobrado>0)texto+=`Seña: $${cobrado.toLocaleString('es-AR')}\n`;
+  if(saldo>0)texto+=`Saldo: $${saldo.toLocaleString('es-AR')}\n`;
+  if(saldo>0){
+    texto+=`\n💳 *Datos para transferencia:*\n`;
+    texto+=`Alias: *musicaydeporte*\n`;
+    texto+=`Titular: Joaquin Facundo Rossi`;
+  }
+  if(navigator.share){
+    try{await navigator.share({title:`Reparación paleta — ${r.cliente}`,text:texto});}catch(e){}
+  } else {
+    navigator.clipboard.writeText(texto).then(()=>alert('Texto copiado al portapapeles.'));
+  }
+}
+function renderPadelClientes(){
+  const buscar=(document.getElementById('padel-clientes-buscar')?document.getElementById('padel-clientes-buscar').value||'':'').toLowerCase().trim();
+  const filtrados=buscar?padelClientes.filter(c=>c.nombre.toLowerCase().includes(buscar)):padelClientes;
+  const countEl=document.getElementById('padel-clientes-count');
+  if(countEl)countEl.textContent=buscar?`${filtrados.length} de ${padelClientes.length}`:`${padelClientes.length} clientes`;
+  const tbody=document.getElementById('padel-clientes-table');if(!tbody)return;
+  if(!filtrados.length){tbody.innerHTML=`<tr><td colspan="4" class="empty">${buscar?'Sin resultados.':'Sin clientes.'}</td></tr>`;return;}
+  tbody.innerHTML=filtrados.map((c,i)=>{
+    const idx=padelClientes.indexOf(c);
+    const reps=padelReps.filter(r=>r.cliente===c.nombre).length;
+    return`<tr>
+      <td style="font-weight:500;color:var(--text-dark);">${c.nombre}</td>
+      <td>${c.cel||'—'}</td>
+      <td>${reps}</td>
+      <td style="display:flex;gap:3px;">
+        <button class="action-btn" onclick="editarPadelCliente(${idx})" title="Editar"><i class="ti ti-edit"></i></button>
+        <button class="action-btn" onclick="deletePadelCliente(${idx})"><i class="ti ti-trash"></i></button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+function editarPadelCliente(i){
+  const c=padelClientes[i];if(!c)return;
+  const nombre=prompt('Nombre:',c.nombre);if(!nombre)return;
+  const cel=prompt('Celular:',c.cel||'');
+  if(c.nombre!==nombre)padelReps.forEach(r=>{if(r.cliente===c.nombre)r.cliente=nombre;});
+  c.nombre=nombre;c.cel=cel||'';
+  renderPadelClientes();renderPadelReps();scheduleSave();
+}
+function deletePadelCliente(i){
+  confirmar('¿Eliminar este cliente?','',()=>{
+    padelClientes.splice(i,1);renderPadelClientes();scheduleSave();
+  });
 }
 
 // NUEVO MÓDULO REMITOS GLAM
@@ -1504,6 +1855,10 @@ function populateNewStockSelect(){
   const wrap=document.getElementById('new-stock-wrap');
   if(!wrap)return;
   wrap.innerHTML=`
+    <select id="new-stock-marca-filtro" onchange="filtrarStockSelect('new')" style="width:100%;font-size:12px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--cream);color:var(--text-dark);padding:6px 8px;margin-bottom:4px;">
+      <option value="">Todas las marcas</option>
+      ${marcas.map(m=>`<option value="${m}">${m}</option>`).join('')}
+    </select>
     <input type="text" id="new-stock-buscar" placeholder="Buscar producto..." oninput="filtrarStockSelect('new')"
       style="width:100%;font-size:12px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--cream);color:var(--text-dark);padding:6px 8px;margin-bottom:4px;box-sizing:border-box;">
     <select id="new-stock-sel" style="width:100%;"></select>`;
@@ -1517,10 +1872,12 @@ function populateNewStockSelect(){
 }
 function filtrarStockSelect(prefix){
   const buscar=(document.getElementById(prefix+'-stock-buscar')?document.getElementById(prefix+'-stock-buscar').value||'':'').toLowerCase();
+  const marcaFiltro=(document.getElementById(prefix+'-stock-marca-filtro')?document.getElementById(prefix+'-stock-marca-filtro').value:'');
   const sel=document.getElementById(prefix+'-stock-sel');
   if(!sel)return;
   const opciones=[];
   stock.forEach((s,i)=>{
+    if(marcaFiltro&&s.marca!==marcaFiltro)return;
     const infoBase=`${s.cat||''}${s.marca?' · '+s.marca:''}${s.nombre?' · '+s.nombre:''}${s.modelo?' · '+s.modelo:''}`;
     if(s.variantes&&s.variantes.length){
       s.variantes.forEach((v,vi)=>{
@@ -1533,6 +1890,32 @@ function filtrarStockSelect(prefix){
     }
   });
   sel.innerHTML='<option value="">— Seleccioná —</option>'+opciones.join('');
+}
+function filtrarStockSelectDet(){
+  const buscar=(document.getElementById('det-stock-buscar')?document.getElementById('det-stock-buscar').value||'':'').toLowerCase();
+  const marcaFiltro=(document.getElementById('det-stock-marca-filtro')?document.getElementById('det-stock-marca-filtro').value:'');
+  const sel=document.getElementById('det-stock-sel');
+  if(!sel)return;
+  const opciones=[];
+  stock.forEach((s,i)=>{
+    if(marcaFiltro&&s.marca!==marcaFiltro)return;
+    const infoBase=`${s.cat||''}${s.marca?' · '+s.marca:''}${s.nombre?' · '+s.nombre:''}${s.modelo?' · '+s.modelo:''}`;
+    if(s.variantes&&s.variantes.length){
+      s.variantes.forEach((v,vi)=>{
+        const txt=`${infoBase} · ${v.nombre} | Stock: ${v.qty} | $${(s.venta||s.precio||0).toLocaleString('es-AR')}`;
+        if(!buscar||txt.toLowerCase().includes(buscar))opciones.push(`<option value="${i}_${vi}">${txt}</option>`);
+      });
+    } else {
+      const txt=`${infoBase} | Stock: ${s.qty} | $${(s.venta||s.precio||0).toLocaleString('es-AR')}`;
+      if(!buscar||txt.toLowerCase().includes(buscar))opciones.push(`<option value="${i}">${txt}</option>`);
+    }
+  });
+  sel.innerHTML='<option value="">— Seleccioná —</option>'+opciones.join('');
+  sel.onchange=()=>{
+    const val=sel.value;if(!val)return;
+    if(val.includes('_')){const[si]=val.split('_').map(Number);if(stock[si])document.getElementById('det-precio').value=stock[si].venta||stock[si].precio||0;}
+    else{const idx=parseInt(val);if(!isNaN(idx)&&stock[idx])document.getElementById('det-precio').value=stock[idx].venta||stock[idx].precio||0;}
+  };
 }
 function toggleStockSelect(prefix){
   const tipo=document.getElementById(prefix+'-tipo').value;
@@ -1651,7 +2034,23 @@ function openClienteModalDesdeOrden(){
 }
 function addItemToOrden(ordenId){const tipo=document.getElementById('det-tipo').value,qty=parseInt(document.getElementById('det-qty').value)||1,precio=parseFloat(document.getElementById('det-precio').value)||0;let desc='',stockIdx=null;const o=ordenes.find(o=>o.id===ordenId);if(!o)return;if(!o.items)o.items=[];if(tipo==='material'){const idx=parseInt(document.getElementById('det-stock-sel').value);if(isNaN(idx)||!stock[idx]){alert('Seleccioná un producto.');return;}if(stock[idx].qty<qty){alert('Stock insuficiente.');return;}desc=stock[idx].nombre;stockIdx=idx;stock[idx].qty-=qty;}else{desc=document.getElementById('det-desc').value.trim();if(!desc){alert('Ingresá descripción.');return;}}o.items.push({tipo,desc,qty,precio,stockIdx});scheduleSave();renderStock();openDetalle(ordenId);}
 function removeItemFromOrden(ordenId,idx){const o=ordenes.find(o=>o.id===ordenId);if(!o||!o.items)return;const it=o.items[idx];if(it.stockIdx!=null&&stock[it.stockIdx])stock[it.stockIdx].qty+=it.qty;o.items.splice(idx,1);scheduleSave();renderStock();openDetalle(ordenId);}
-function toggleDetStockSelect(){const tipo=document.getElementById('det-tipo').value;document.getElementById('det-desc-wrap').style.display=tipo==='material'?'none':'block';document.getElementById('det-stock-wrap').style.display=tipo==='material'?'block':'none';document.getElementById('det-precio').value='';}
+function toggleDetStockSelect(){
+  const tipo=document.getElementById('det-tipo').value;
+  const esMaterial=tipo==='material';
+  const esTrabajo=tipo==='trabajo';
+  document.getElementById('det-desc-wrap').style.display=esMaterial?'none':'block';
+  document.getElementById('det-stock-wrap').style.display=esMaterial?'block':'none';
+  const trabajoWrap=document.getElementById('det-trabajo-wrap');
+  if(trabajoWrap){
+    trabajoWrap.style.display=esTrabajo?'block':'none';
+    if(esTrabajo){
+      const sel=document.getElementById('det-trabajo-sel');
+      if(sel)sel.innerHTML='<option value="">— Elegir trabajo de la lista —</option>'+trabajos.map(t=>`<option value="${t.id}">${t.desc} — $${t.precio.toLocaleString('es-AR')}</option>`).join('');
+    }
+  }
+  if(esMaterial)filtrarStockSelectDet();
+  document.getElementById('det-precio').value='';
+}
 function registrarCobro(ordenId){
   const monto=parseFloat(document.getElementById('cobro-monto-'+ordenId).value)||0;
   if(monto<=0){alert('Ingresá un monto mayor a 0.');return;}
@@ -1718,12 +2117,19 @@ function openDetalle(id){
       <div class="item-add-grid">
         <select id="det-tipo" onchange="toggleDetStockSelect()"><option value="trabajo">Trabajo</option><option value="material">Material stock</option><option value="material-libre">Material libre</option><option value="material-glam">Material GLAM</option></select>
         <div id="det-desc-wrap"><input type="text" id="det-desc" placeholder="Descripción..."></div>
-        <div id="det-stock-wrap" style="display:none;"><select id="det-stock-sel">${stock.map((s,i)=>`<option value="${i}">${s.nombre} (${s.qty} u.) — $${s.venta||s.precio||0}</option>`).join('')}</select></div>
+        <div id="det-stock-wrap" style="display:none;">
+          <select id="det-stock-marca-filtro" onchange="filtrarStockSelectDet()" style="width:100%;font-size:12px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--cream);color:var(--text-dark);padding:6px 8px;margin-bottom:4px;">
+            <option value="">Todas las marcas</option>
+            ${marcas.map(m=>`<option value="${m}">${m}</option>`).join('')}
+          </select>
+          <input type="text" id="det-stock-buscar" placeholder="Buscar producto..." oninput="filtrarStockSelectDet()" style="width:100%;font-size:12px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--cream);color:var(--text-dark);padding:6px 8px;margin-bottom:4px;box-sizing:border-box;">
+          <select id="det-stock-sel" style="width:100%;"></select>
+        </div>
         <input type="number" id="det-qty" value="1" min="1" style="width:64px;">
         <input type="number" id="det-precio" placeholder="$" min="0" style="width:80px;">
         <button class="btn btn-primary" onclick="addItemToOrden(${o.id})" style="padding:7px 10px;"><i class="ti ti-plus"></i></button>
       </div>
-      <div class="items-list" style="margin-bottom:8px;">${items.length?items.map((it,i)=>`<div class="item-row"><span class="${it.tipo==='trabajo'?'tag-trabajo':'tag-material'}">${it.tipo==='trabajo'?'Trabajo':'Material'}</span><span class="item-row-desc">${it.desc}${it.qty>1?` × ${it.qty}`:''}</span><span class="item-row-price">$${(it.qty*it.precio).toLocaleString('es-AR')}</span><button class="action-btn" onclick="removeItemFromOrden(${o.id},${i})"><i class="ti ti-trash"></i></button></div>`).join(''):'<p style="font-size:12px;color:var(--text-muted);font-style:italic;padding:4px 0;">Sin ítems.</p>'}</div>
+      <div class="items-list" style="margin-bottom:8px;">${items.length?items.map((it,i)=>`<div class="item-row">${itemTag(it.tipo)}<span class="item-row-desc">${it.desc}${it.qty>1?` × ${it.qty}`:''}${it.tipo==='material-glam'?' <small style="color:var(--glam);font-size:10px;">(A reponer)</small>':''}</span><span class="item-row-price">${it.tipo==='material-glam'?'—':'$'+(it.qty*it.precio).toLocaleString('es-AR')}</span><button class="action-btn" onclick="removeItemFromOrden(${o.id},${i})"><i class="ti ti-trash"></i></button></div>`).join(''):'<p style="font-size:12px;color:var(--text-muted);font-style:italic;padding:4px 0;">Sin ítems.</p>'}</div>
       ${items.length?`<div class="total-bar"><div><div class="total-bar-label">Trabajo: $${tT.toLocaleString('es-AR')} · Materiales: $${tM.toLocaleString('es-AR')}</div></div><span class="total-bar-amount">Total $${total.toLocaleString('es-AR')}</span></div>`:''}
     </div>
     <div class="items-section" style="margin-top:8px;"><h4>Cobros</h4>
@@ -2663,6 +3069,8 @@ const stockFiltrocat=document.getElementById('stock-filtro-cat');
 if(stockFiltrocat)stockFiltrocat.addEventListener('change',renderStock);
 const stockFiltromarca=document.getElementById('stock-filtro-marca');
 if(stockFiltromarca)stockFiltromarca.addEventListener('change',renderStock);
+const padelBuscar=document.getElementById('padel-clientes-buscar');
+if(padelBuscar)padelBuscar.addEventListener('input',renderPadelClientes);
 
 // Iniciar filtros
 initFiltros();
