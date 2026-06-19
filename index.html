@@ -548,9 +548,13 @@ tr:hover td{background:rgba(196,149,106,0.04);}
       <div class="field"><label>Estado</label><select id="o-estado" style="max-width:180px;"><option value="Pendiente">Pendiente</option><option value="En proceso">En proceso</option><option value="Listo">Listo</option><option value="Entregado">Entregado</option><option value="Cobrado">Cobrado</option></select></div>
       <div class="items-section">
         <h4>Trabajos y materiales</h4>
+        <div id="new-trabajo-wrap" style="display:block;margin-bottom:6px;">
+          <select id="new-trabajo-sel" onchange="seleccionarTrabajo()" style="width:100%;font-size:12px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--cream);color:var(--text-dark);padding:7px 10px;">
+            <option value="">— Elegir trabajo de la lista —</option>
+          </select>
+        </div>
         <div class="item-add-grid">
           <select id="new-tipo" onchange="toggleStockSelect('new')"><option value="trabajo">Trabajo</option><option value="material">Material stock</option><option value="material-libre">Material libre</option><option value="material-glam">Material GLAM</option></select>
-          <div id="new-trabajo-wrap"><select id="new-trabajo-sel" onchange="seleccionarTrabajo()"><option value="">— Elegir trabajo —</option></select></div>
           <div id="new-desc-wrap"><input type="text" id="new-desc" placeholder="Descripción..."></div>
           <div id="new-stock-wrap" style="display:none;"><select id="new-stock-sel"></select></div>
           <input type="number" id="new-qty" placeholder="Cant." min="1" value="1" style="width:64px;">
@@ -1187,7 +1191,17 @@ function calcPrecioVenta(){
     document.getElementById('s-venta-calc').textContent='$—';
   }
 }
-function openOrdenModal(){newFotosData=[];newItems=[];populateClienteSelect('o-cliente');populateNewStockSelect();renderNewItems();renderNewFotosPreview();document.querySelectorAll('#modal-orden input:not([type=file]),#modal-orden textarea').forEach(el=>el.value='');document.getElementById('modal-orden').classList.add('open');}
+function openOrdenModal(){
+  newFotosData=[];newItems=[];
+  populateClienteSelect('o-cliente');
+  populateNewStockSelect();
+  renderNewItems();renderNewFotosPreview();
+  document.querySelectorAll('#modal-orden input:not([type=file]),#modal-orden textarea').forEach(el=>el.value='');
+  // Poblar selector de trabajos
+  const trabajoSel=document.getElementById('new-trabajo-sel');
+  if(trabajoSel)trabajoSel.innerHTML='<option value="">— Elegir trabajo de la lista —</option>'+trabajos.map(t=>`<option value="${t.id}">${t.desc} — $${t.precio.toLocaleString('es-AR')}</option>`).join('');
+  document.getElementById('modal-orden').classList.add('open');
+}
 function openGlamOrden(){openOrdenModal();document.getElementById('o-origen').value='glam';}
 function openFabModal(){populateClienteSelect('f-cliente');document.getElementById('modal-fab').classList.add('open');}
 function openClienteModal(){document.getElementById('modal-cliente').classList.add('open');}
@@ -1520,12 +1534,15 @@ function toggleStockSelect(prefix){
   if(trabajoWrap){
     trabajoWrap.style.display=esTrabajo?'block':'none';
     if(esTrabajo){
-      // Poblar selector de trabajos
       const sel=document.getElementById(prefix+'-trabajo-sel');
-      if(sel){sel.innerHTML='<option value="">— Elegir trabajo —</option>'+trabajos.map(t=>`<option value="${t.id}">${t.desc} — $${t.precio.toLocaleString('es-AR')}</option>`).join('');}
+      if(sel){
+        sel.innerHTML='<option value="">— Elegir trabajo de la lista —</option>'+
+          trabajos.map(t=>`<option value="${t.id}">${t.desc} — $${t.precio.toLocaleString('es-AR')}</option>`).join('');
+      }
     }
   }
   document.getElementById(prefix+'-precio').value='';
+  if(!esTrabajo)document.getElementById(prefix+'-desc').value='';
 }
 function seleccionarTrabajo(){
   const sel=document.getElementById('new-trabajo-sel');
