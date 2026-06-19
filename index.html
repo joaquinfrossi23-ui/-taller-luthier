@@ -80,10 +80,10 @@ body{font-family:'Inter',sans-serif;background:var(--parchment);}
 .card-header{padding:12px 1rem;border-bottom:0.5px solid var(--border-light);display:flex;align-items:center;justify-content:space-between;background:var(--cream-dark);}
 .card-header span{font-family:'Playfair Display',serif;font-size:15px;color:var(--text-dark);}
 .card-header.glam-header{background:var(--glam-light);border-bottom:0.5px solid var(--glam-border);}
-table{width:100%;border-collapse:collapse;}
-th{text-align:left;font-size:10px;font-weight:500;color:var(--text-muted);padding:9px 1rem;border-bottom:0.5px solid var(--border-light);text-transform:uppercase;letter-spacing:0.07em;background:var(--cream-dark);}
+table{width:100%;border-collapse:collapse;table-layout:auto;}
+th{text-align:left;font-size:10px;font-weight:500;color:var(--text-muted);padding:9px 1rem;border-bottom:0.5px solid var(--border-light);text-transform:uppercase;letter-spacing:0.07em;background:var(--cream-dark);white-space:nowrap;}
 th.glam-th{background:var(--glam-light);}
-td{padding:9px 1rem;font-size:13px;color:var(--text-mid);border-bottom:0.5px solid var(--border-light);vertical-align:middle;}
+td{padding:9px 1rem;font-size:13px;color:var(--text-mid);border-bottom:0.5px solid var(--border-light);vertical-align:middle;white-space:nowrap;}
 tr:last-child td{border-bottom:none;}
 tr:hover td{background:rgba(196,149,106,0.04);}
 .badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500;border:none;cursor:pointer;font-family:'Inter',sans-serif;}
@@ -1491,36 +1491,48 @@ function openRemitoModal(){
 }
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 function toggleClienteFab(){document.getElementById('f-cliente-field').style.display=document.getElementById('f-destino').value==='encargo'?'flex':'none';}
-function populateClienteSelect(id){const sel=document.getElementById(id);sel.innerHTML='<option value="">Seleccioná un cliente</option>';clientes.forEach(c=>{const o=document.createElement('option');o.value=c.nombre;o.textContent=c.nombre;o.dataset.tel=c.tel;sel.appendChild(o);});if(id==='o-cliente')sel.onchange=()=>{const opt=sel.options[sel.selectedIndex];document.getElementById('o-tel').value=opt.dataset.tel||'';};}
+function populateClienteSelect(id){
+  const sel=document.getElementById(id);if(!sel)return;
+  // Quitar buscador si existe
+  const buscarEl=document.getElementById('buscar-cliente-'+id);
+  if(buscarEl)buscarEl.remove();
+  sel.innerHTML='<option value="">Seleccioná un cliente</option>'+clientes.map(c=>`<option value="${c.nombre}" data-tel="${c.tel||''}">${c.nombre}${c.localidad?' — '+c.localidad:''}</option>`).join('');
+  if(id==='o-cliente')sel.onchange=()=>{const opt=sel.options[sel.selectedIndex];document.getElementById('o-tel').value=opt&&opt.dataset.tel||'';};
+  if(id==='p-cliente')sel.onchange=()=>{try{const opt=sel.options[sel.selectedIndex];document.getElementById('p-tel').value=opt&&opt.dataset.tel||'';}catch(e){}};
+}
 function populateNewStockSelect(){
-  const sel=document.getElementById('new-stock-sel');
-  sel.innerHTML='<option value="">— Seleccioná —</option>';
+  const wrap=document.getElementById('new-stock-wrap');
+  if(!wrap)return;
+  wrap.innerHTML=`
+    <input type="text" id="new-stock-buscar" placeholder="Buscar producto..." oninput="filtrarStockSelect('new')"
+      style="width:100%;font-size:12px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--cream);color:var(--text-dark);padding:6px 8px;margin-bottom:4px;box-sizing:border-box;">
+    <select id="new-stock-sel" style="width:100%;"></select>`;
+  filtrarStockSelect('new');
+  document.getElementById('new-stock-sel').onchange=()=>{
+    const val=document.getElementById('new-stock-sel').value;
+    if(!val)return;
+    if(val.includes('_')){const[si]=val.split('_').map(Number);if(stock[si])document.getElementById('new-precio').value=stock[si].venta||stock[si].precio||0;}
+    else{const idx=parseInt(val);if(!isNaN(idx)&&stock[idx])document.getElementById('new-precio').value=stock[idx].venta||stock[idx].precio||0;}
+  };
+}
+function filtrarStockSelect(prefix){
+  const buscar=(document.getElementById(prefix+'-stock-buscar')?document.getElementById(prefix+'-stock-buscar').value||'':'').toLowerCase();
+  const sel=document.getElementById(prefix+'-stock-sel');
+  if(!sel)return;
+  const opciones=[];
   stock.forEach((s,i)=>{
+    const infoBase=`${s.cat||''}${s.marca?' · '+s.marca:''}${s.nombre?' · '+s.nombre:''}${s.modelo?' · '+s.modelo:''}`;
     if(s.variantes&&s.variantes.length){
       s.variantes.forEach((v,vi)=>{
-        const o=document.createElement('option');
-        o.value=`${i}_${vi}`;
-        o.textContent=`${s.nombre} — ${v.nombre} (${v.qty} u.) — $${s.venta||s.precio||0}`;
-        sel.appendChild(o);
+        const txt=`${infoBase} · ${v.nombre} | Stock: ${v.qty} | $${(s.venta||s.precio||0).toLocaleString('es-AR')}`;
+        if(!buscar||txt.toLowerCase().includes(buscar))opciones.push(`<option value="${i}_${vi}">${txt}</option>`);
       });
     } else {
-      const o=document.createElement('option');
-      o.value=i;
-      o.textContent=`${s.nombre} (${s.qty} u.) — $${s.venta||s.precio||0}`;
-      sel.appendChild(o);
+      const txt=`${infoBase} | Stock: ${s.qty} | $${(s.venta||s.precio||0).toLocaleString('es-AR')}`;
+      if(!buscar||txt.toLowerCase().includes(buscar))opciones.push(`<option value="${i}">${txt}</option>`);
     }
   });
-  sel.onchange=()=>{
-    const val=sel.value;
-    if(!val)return;
-    if(val.includes('_')){
-      const [si]=val.split('_').map(Number);
-      if(stock[si])document.getElementById('new-precio').value=stock[si].venta||stock[si].precio||0;
-    } else {
-      const idx=parseInt(val);
-      if(!isNaN(idx)&&stock[idx])document.getElementById('new-precio').value=stock[idx].venta||stock[idx].precio||0;
-    }
-  };
+  sel.innerHTML='<option value="">— Seleccioná —</option>'+opciones.join('');
 }
 function toggleStockSelect(prefix){
   const tipo=document.getElementById(prefix+'-tipo').value;
@@ -1552,6 +1564,18 @@ function seleccionarTrabajo(){
   if(!t)return;
   document.getElementById('new-desc').value=t.desc;
   document.getElementById('new-precio').value=t.precio;
+}
+function seleccionarTrabajoDetalle(){
+  const sel=document.getElementById('det-trabajo-sel');
+  const id=parseInt(sel.value);
+  if(isNaN(id))return;
+  const t=trabajos.find(t=>t.id===id);
+  if(!t)return;
+  document.getElementById('det-desc').value=t.desc;
+  document.getElementById('det-precio').value=t.precio;
+  // Cambiar tipo a trabajo
+  document.getElementById('det-tipo').value='trabajo';
+  toggleDetStockSelect();
 }
 function calcTotal(items){return(items||[]).reduce((s,it)=>s+it.qty*it.precio,0);}
 function calcCobrado(cobros){return(cobros||[]).reduce((s,c)=>s+c.monto,0);}
@@ -1685,6 +1709,12 @@ function openDetalle(id){
       <div class="det-field"><label>Estado</label><p>${o.estado}</p></div>
     </div></div>
     <div class="items-section"><h4>Trabajos y materiales</h4>
+      <div id="det-trabajo-wrap" style="margin-bottom:6px;">
+        <select id="det-trabajo-sel" onchange="seleccionarTrabajoDetalle()" style="width:100%;font-size:12px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--cream);color:var(--text-dark);padding:7px 10px;">
+          <option value="">— Elegir trabajo de la lista —</option>
+          ${trabajos.map(t=>`<option value="${t.id}">${t.desc} — $${t.precio.toLocaleString('es-AR')}</option>`).join('')}
+        </select>
+      </div>
       <div class="item-add-grid">
         <select id="det-tipo" onchange="toggleDetStockSelect()"><option value="trabajo">Trabajo</option><option value="material">Material stock</option><option value="material-libre">Material libre</option><option value="material-glam">Material GLAM</option></select>
         <div id="det-desc-wrap"><input type="text" id="det-desc" placeholder="Descripción..."></div>
