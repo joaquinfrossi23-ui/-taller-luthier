@@ -732,18 +732,31 @@ tr:hover td{background:rgba(196,149,106,0.04);}
       </div>
       <div class="items-section">
         <h4>Trabajos y materiales</h4>
+        <div id="pres-trabajo-wrap" style="margin-bottom:6px;">
+          <select id="pres-trabajo-sel" onchange="seleccionarTrabajoPresupuesto()" style="width:100%;font-size:12px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--cream);color:var(--text-dark);padding:7px 10px;">
+            <option value="">— Elegir trabajo de la lista —</option>
+          </select>
+        </div>
         <div class="item-add-grid">
           <select id="pres-tipo" onchange="toggleStockSelect('pres')"><option value="trabajo">Trabajo</option><option value="material">Material stock</option><option value="material-libre">Material libre</option><option value="material-glam">Material GLAM</option></select>
           <div id="pres-desc-wrap"><input type="text" id="pres-desc" placeholder="Descripción..."></div>
-          <div id="pres-stock-wrap" style="display:none;"><select id="pres-stock-sel"></select></div>
+          <div id="pres-stock-wrap" style="display:none;">
+            <select id="pres-stock-marca-filtro" onchange="filtrarStockSelect('pres')" style="width:100%;font-size:12px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--cream);color:var(--text-dark);padding:6px 8px;margin-bottom:4px;">
+              <option value="">Todas las marcas</option>
+            </select>
+            <input type="text" id="pres-stock-buscar" placeholder="Buscar producto..." oninput="filtrarStockSelect('pres')" style="width:100%;font-size:12px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--cream);color:var(--text-dark);padding:6px 8px;margin-bottom:4px;box-sizing:border-box;">
+            <select id="pres-stock-sel" style="width:100%;"></select>
+          </div>
           <input type="number" id="pres-qty" placeholder="Cant." min="1" value="1" style="width:64px;">
-          <input type="number" id="pres-precio" placeholder="$" min="0" style="width:80px;" id="pres-precio-wrap">
+          <input type="number" id="pres-precio" placeholder="$" min="0" style="width:80px;">
           <button class="btn btn-primary" onclick="addItemToPresupuesto()" style="padding:7px 10px;"><i class="ti ti-plus"></i></button>
         </div>
         <div id="pres-items-list" class="items-list"></div>
         <div class="total-bar" id="pres-total-bar" style="display:none;"><span class="total-bar-label">Total presupuesto</span><span class="total-bar-amount" id="pres-total">$0</span></div>
       </div>
       <div class="field"><label>Observaciones</label><textarea id="p-obs" placeholder="Notas para el cliente..."></textarea></div>
+      <div class="field"><label>Fotos (registro interno)</label><input type="file" id="p-fotos" accept="image/*" multiple onchange="handlePresFotos(event)"></div>
+      <div id="p-fotos-preview" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
     </div>
     <div class="modal-footer"><button class="btn" onclick="closeModal('modal-presupuesto')">Cancelar</button><button class="btn btn-primary" onclick="savePresupuesto()">Guardar presupuesto</button></div>
   </div>
@@ -889,15 +902,46 @@ tr:hover td{background:rgba(196,149,106,0.04);}
 
 <!-- MODAL EDITAR PRESUPUESTO -->
 <div class="modal-bg" id="modal-editar-presupuesto">
-  <div class="modal">
+  <div class="modal modal-wide">
     <div class="modal-header"><h3>Editar presupuesto</h3><button class="action-btn" onclick="closeModal('modal-editar-presupuesto')"><i class="ti ti-x"></i></button></div>
     <div class="modal-body">
-      <div class="field"><label>Cliente</label><select id="edit-p-cliente"><option value="">Seleccioná un cliente</option></select></div>
-      <div class="field"><label>Descripción</label><textarea id="edit-p-desc"></textarea></div>
       <div class="row2">
-        <div class="field"><label>Monto ($)</label><input type="number" id="edit-p-monto"></div>
+        <div class="field"><label>Origen</label><select id="edit-p-origen"><option value="propio">Taller propio</option><option value="glam">GLAM</option></select></div>
         <div class="field"><label>Estado</label><select id="edit-p-estado"><option>Pendiente</option><option>Aprobado</option><option>Rechazado</option></select></div>
       </div>
+      <div class="row2">
+        <div class="field"><label>Cliente</label><select id="edit-p-cliente"></select></div>
+        <div class="field"><label>Teléfono</label><input type="text" id="edit-p-tel" readonly placeholder="—"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Instrumento</label><input type="text" id="edit-p-instrumento"></div>
+        <div class="field"><label>Marca / Modelo</label><input type="text" id="edit-p-marca"></div>
+      </div>
+      <div class="items-section">
+        <h4>Trabajos y materiales</h4>
+        <div id="editp-trabajo-wrap" style="margin-bottom:6px;">
+          <select id="editp-trabajo-sel" onchange="seleccionarTrabajoEditPres()" style="width:100%;font-size:12px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--cream);color:var(--text-dark);padding:7px 10px;">
+            <option value="">— Elegir trabajo de la lista —</option>
+          </select>
+        </div>
+        <div class="item-add-grid">
+          <select id="editp-tipo" onchange="toggleStockSelect('editp')"><option value="trabajo">Trabajo</option><option value="material">Material stock</option><option value="material-libre">Material libre</option><option value="material-glam">Material GLAM</option></select>
+          <div id="editp-desc-wrap"><input type="text" id="editp-desc" placeholder="Descripción..."></div>
+          <div id="editp-stock-wrap" style="display:none;">
+            <select id="editp-stock-marca-filtro" onchange="filtrarStockSelect('editp')" style="width:100%;font-size:12px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--cream);color:var(--text-dark);padding:6px 8px;margin-bottom:4px;">
+              <option value="">Todas las marcas</option>
+            </select>
+            <input type="text" id="editp-stock-buscar" placeholder="Buscar producto..." oninput="filtrarStockSelect('editp')" style="width:100%;font-size:12px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--cream);color:var(--text-dark);padding:6px 8px;margin-bottom:4px;box-sizing:border-box;">
+            <select id="editp-stock-sel" style="width:100%;"></select>
+          </div>
+          <input type="number" id="editp-qty" placeholder="Cant." min="1" value="1" style="width:64px;">
+          <input type="number" id="editp-precio" placeholder="$" min="0" style="width:80px;">
+          <button class="btn btn-primary" onclick="addItemToEditPresupuesto()" style="padding:7px 10px;"><i class="ti ti-plus"></i></button>
+        </div>
+        <div id="editp-items-list" class="items-list"></div>
+        <div class="total-bar" id="editp-total-bar" style="display:none;"><span class="total-bar-label">Total</span><span class="total-bar-amount" id="editp-total">$0</span></div>
+      </div>
+      <div class="field"><label>Observaciones</label><textarea id="edit-p-obs"></textarea></div>
     </div>
     <div class="modal-footer"><button class="btn" onclick="closeModal('modal-editar-presupuesto')">Cancelar</button><button class="btn btn-primary" onclick="guardarEditPresupuesto()">Guardar cambios</button></div>
   </div>
@@ -1975,13 +2019,13 @@ function addItemToNew(){
       const [si,vi]=val.split('_').map(Number);
       if(!stock[si]||!stock[si].variantes[vi]){alert('Producto no encontrado.');return;}
       if(stock[si].variantes[vi].qty<qty){alert('Stock insuficiente.');return;}
-      desc=`${stock[si].nombre} — ${stock[si].variantes[vi].nombre}`;
+      desc=getStockDescCompleta(si,vi);
       stockIdx=si;stockVarianteIdx=vi;
     } else {
       const idx=parseInt(val);
       if(isNaN(idx)||!stock[idx]){alert('Seleccioná un producto.');return;}
       if(stock[idx].qty<qty){alert('Stock insuficiente.');return;}
-      desc=stock[idx].nombre;stockIdx=idx;
+      desc=getStockDescCompleta(idx,null);stockIdx=idx;
     }
   } else {
     desc=document.getElementById('new-desc').value.trim();
@@ -2341,25 +2385,96 @@ function guardarEditFab(){
 }
 
 // EDITAR PRESUPUESTO
+let editPresItems=[];
 function editarPresupuesto(id){
   const p=presupuestos.find(p=>p.id===id);if(!p)return;
   populateClienteSelect('edit-p-cliente');
   document.getElementById('edit-p-cliente').value=p.cliente;
-  document.getElementById('edit-p-desc').value=p.desc||'';
-  document.getElementById('edit-p-monto').value=p.monto||0;
+  document.getElementById('edit-p-origen').value=p.origen||'propio';
   document.getElementById('edit-p-estado').value=p.estado;
+  document.getElementById('edit-p-instrumento').value=p.instrumento||'';
+  document.getElementById('edit-p-marca').value=p.marca||'';
+  document.getElementById('edit-p-obs').value=p.obs||'';
+  // Cargar ítems
+  editPresItems=(p.items||[]).map(it=>({...it}));
+  renderEditPresItems();
+  // Poblar selectores
+  const tSel=document.getElementById('editp-trabajo-sel');
+  if(tSel)tSel.innerHTML='<option value="">— Elegir trabajo de la lista —</option>'+trabajos.map(t=>`<option value="${t.id}">${t.desc} — $${t.precio.toLocaleString('es-AR')}</option>`).join('');
+  const mSel=document.getElementById('editp-stock-marca-filtro');
+  if(mSel)mSel.innerHTML='<option value="">Todas las marcas</option>'+marcas.map(m=>`<option value="${m}">${m}</option>`).join('');
+  filtrarStockSelect('editp');
+  const sSel=document.getElementById('editp-stock-sel');
+  if(sSel)sSel.onchange=()=>{
+    const val=sSel.value;if(!val)return;
+    if(val.includes('_')){const[si]=val.split('_').map(Number);if(stock[si])document.getElementById('editp-precio').value=stock[si].venta||stock[si].precio||0;}
+    else{const idx=parseInt(val);if(!isNaN(idx)&&stock[idx])document.getElementById('editp-precio').value=stock[idx].venta||stock[idx].precio||0;}
+  };
   document.getElementById('modal-editar-presupuesto').dataset.id=id;
   document.getElementById('modal-editar-presupuesto').classList.add('open');
+}
+function seleccionarTrabajoEditPres(){
+  const sel=document.getElementById('editp-trabajo-sel');
+  const id=parseInt(sel.value);if(isNaN(id))return;
+  const t=trabajos.find(t=>t.id===id);if(!t)return;
+  document.getElementById('editp-desc').value=t.desc;
+  document.getElementById('editp-precio').value=t.precio;
+}
+function addItemToEditPresupuesto(){
+  const tipo=document.getElementById('editp-tipo').value;
+  const qty=parseInt(document.getElementById('editp-qty').value)||1;
+  const precio=tipo==='material-glam'?0:parseFloat(document.getElementById('editp-precio').value)||0;
+  let desc='',stockIdx=null,stockVarianteIdx=null;
+  if(tipo==='material'){
+    const val=document.getElementById('editp-stock-sel').value;
+    if(!val){alert('Seleccioná un producto.');return;}
+    if(val.includes('_')){
+      const[si,vi]=val.split('_').map(Number);
+      desc=getStockDescCompleta(si,vi);stockIdx=si;stockVarianteIdx=vi;
+    } else {
+      const idx=parseInt(val);
+      if(isNaN(idx)||!stock[idx]){alert('Seleccioná un producto.');return;}
+      desc=getStockDescCompleta(idx,null);stockIdx=idx;
+    }
+  }else{
+    desc=document.getElementById('editp-desc').value.trim();
+    if(!desc){alert('Ingresá descripción.');return;}
+  }
+  editPresItems.push({tipo,desc,qty,precio,stockIdx,stockVarianteIdx});
+  renderEditPresItems();
+  document.getElementById('editp-desc').value='';
+  document.getElementById('editp-precio').value='';
+  document.getElementById('editp-qty').value=1;
+}
+function removeEditPresItem(i){editPresItems.splice(i,1);renderEditPresItems();}
+function renderEditPresItems(){
+  const list=document.getElementById('editp-items-list'),bar=document.getElementById('editp-total-bar');
+  if(!editPresItems.length){list.innerHTML='<p style="font-size:12px;color:var(--text-muted);font-style:italic;padding:4px 0;">Sin ítems.</p>';bar.style.display='none';return;}
+  list.innerHTML=editPresItems.map((it,i)=>`<div class="item-row">
+    ${itemTag(it.tipo)}
+    <span class="item-row-desc">${it.desc}${it.qty>1?` × ${it.qty}`:''}${it.tipo==='material-glam'?' <small style="color:var(--glam);font-size:10px;">(A reponer)</small>':''}</span>
+    <span class="item-row-price">${it.tipo==='material-glam'?'—':'$'+(it.qty*it.precio).toLocaleString('es-AR')}</span>
+    <button class="action-btn" onclick="removeEditPresItem(${i})"><i class="ti ti-trash"></i></button>
+  </div>`).join('');
+  const total=editPresItems.filter(it=>it.tipo!=='material-glam').reduce((s,it)=>s+it.qty*it.precio,0);
+  bar.style.display='flex';
+  document.getElementById('editp-total').textContent='$'+total.toLocaleString('es-AR');
 }
 function guardarEditPresupuesto(){
   const id=parseInt(document.getElementById('modal-editar-presupuesto').dataset.id);
   const p=presupuestos.find(p=>p.id===id);if(!p)return;
   const cliente=document.getElementById('edit-p-cliente').value;
-  const desc=document.getElementById('edit-p-desc').value;
-  if(!cliente||!desc){alert('Completá cliente y descripción.');return;}
-  p.cliente=cliente;p.desc=desc;
-  p.monto=parseFloat(document.getElementById('edit-p-monto').value)||0;
+  const instrumento=document.getElementById('edit-p-instrumento').value;
+  if(!cliente){alert('Seleccioná un cliente.');return;}
+  p.cliente=cliente;
+  p.origen=document.getElementById('edit-p-origen').value;
   p.estado=document.getElementById('edit-p-estado').value;
+  p.instrumento=instrumento;
+  p.marca=document.getElementById('edit-p-marca').value;
+  p.obs=document.getElementById('edit-p-obs').value;
+  p.items=editPresItems.map(it=>({...it}));
+  p.monto=editPresItems.filter(it=>it.tipo!=='material-glam').reduce((s,it)=>s+it.qty*it.precio,0);
+  editPresItems=[];
   closeModal('modal-editar-presupuesto');renderPresupuestos();scheduleSave();
 }
 
@@ -2621,37 +2736,64 @@ let _scrollGlamAlFinal=false;
 function openPresupuestoModal(){
   presItems=[];
   populateClienteSelect('p-cliente');
-  populatePresStockSelect();
   renderPresItems();
   document.querySelectorAll('#modal-presupuesto input:not([type=file]),#modal-presupuesto textarea').forEach(el=>el.value='');
   document.getElementById('p-origen').value='propio';
+  // Poblar selector de trabajos
+  const tSel=document.getElementById('pres-trabajo-sel');
+  if(tSel)tSel.innerHTML='<option value="">— Elegir trabajo de la lista —</option>'+trabajos.map(t=>`<option value="${t.id}">${t.desc} — $${t.precio.toLocaleString('es-AR')}</option>`).join('');
+  // Poblar marcas en stock
+  const mSel=document.getElementById('pres-stock-marca-filtro');
+  if(mSel)mSel.innerHTML='<option value="">Todas las marcas</option>'+marcas.map(m=>`<option value="${m}">${m}</option>`).join('');
+  filtrarStockSelect('pres');
+  document.getElementById('pres-stock-sel').onchange=()=>{
+    const val=document.getElementById('pres-stock-sel').value;if(!val)return;
+    if(val.includes('_')){const[si]=val.split('_').map(Number);if(stock[si])document.getElementById('pres-precio').value=stock[si].venta||stock[si].precio||0;}
+    else{const idx=parseInt(val);if(!isNaN(idx)&&stock[idx])document.getElementById('pres-precio').value=stock[idx].venta||stock[idx].precio||0;}
+  };
   document.getElementById('modal-presupuesto').classList.add('open');
 }
 function openClienteModalDesdePresupuesto(){
   window._volverAPresupuesto=true;
   document.getElementById('modal-cliente').classList.add('open');
 }
-function populatePresStockSelect(){
-  const sel=document.getElementById('pres-stock-sel');
-  if(!sel)return;
-  sel.innerHTML='<option value="">— Seleccioná —</option>';
-  stock.forEach((s,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`${s.nombre} (${s.qty} u.) — $${s.venta||s.precio||0}`;sel.appendChild(o);});
-  sel.onchange=()=>{const idx=parseInt(sel.value);if(!isNaN(idx)&&stock[idx])document.getElementById('pres-precio').value=stock[idx].venta||stock[idx].precio||0;};
+function seleccionarTrabajoPresupuesto(){
+  const sel=document.getElementById('pres-trabajo-sel');
+  const id=parseInt(sel.value);if(isNaN(id))return;
+  const t=trabajos.find(t=>t.id===id);if(!t)return;
+  document.getElementById('pres-desc').value=t.desc;
+  document.getElementById('pres-precio').value=t.precio;
+}
+function getStockDescCompleta(idx,varIdx){
+  const s=stock[idx];if(!s)return'?';
+  let desc=s.marca?s.marca+' ':'';
+  desc+=s.nombre||'';
+  if(s.modelo)desc+=' '+s.modelo;
+  if(varIdx!==null&&varIdx!==undefined&&s.variantes&&s.variantes[varIdx])desc+=' — '+s.variantes[varIdx].nombre;
+  return desc.trim();
 }
 function addItemToPresupuesto(){
   const tipo=document.getElementById('pres-tipo').value;
   const qty=parseInt(document.getElementById('pres-qty').value)||1;
   const precio=tipo==='material-glam'?0:parseFloat(document.getElementById('pres-precio').value)||0;
-  let desc='',stockIdx=null;
+  let desc='',stockIdx=null,stockVarianteIdx=null;
   if(tipo==='material'){
-    const idx=parseInt(document.getElementById('pres-stock-sel').value);
-    if(isNaN(idx)||!stock[idx]){alert('Seleccioná un producto.');return;}
-    desc=stock[idx].nombre;stockIdx=idx;
+    const val=document.getElementById('pres-stock-sel').value;
+    if(!val){alert('Seleccioná un producto.');return;}
+    if(val.includes('_')){
+      const[si,vi]=val.split('_').map(Number);
+      if(!stock[si]){alert('Producto no encontrado.');return;}
+      desc=getStockDescCompleta(si,vi);stockIdx=si;stockVarianteIdx=vi;
+    } else {
+      const idx=parseInt(val);
+      if(isNaN(idx)||!stock[idx]){alert('Seleccioná un producto.');return;}
+      desc=getStockDescCompleta(idx,null);stockIdx=idx;
+    }
   }else{
     desc=document.getElementById('pres-desc').value.trim();
     if(!desc){alert('Ingresá descripción.');return;}
   }
-  presItems.push({tipo,desc,qty,precio,stockIdx});
+  presItems.push({tipo,desc,qty,precio,stockIdx,stockVarianteIdx});
   renderPresItems();
   document.getElementById('pres-desc').value='';
   document.getElementById('pres-precio').value='';
