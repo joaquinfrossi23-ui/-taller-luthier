@@ -1421,6 +1421,7 @@ let pdItems=[];
 let pdFotosData=[];
 
 function openPadelModal(){
+  _editPadelRepId=null;
   pdItems=[];pdFotosData=[];
   document.getElementById('pd-fecha').value=new Date().toISOString().split('T')[0];
   document.getElementById('pd-cel').value='';
@@ -1492,7 +1493,7 @@ function renderPdItems(){
   const bar=document.getElementById('pd-total-bar');
   if(!pdItems.length){el.innerHTML='<p style="font-size:12px;color:var(--text-muted);font-style:italic;padding:4px 0;">Sin reparaciones.</p>';bar.style.display='none';return;}
   el.innerHTML=pdItems.map((it,i)=>`<div class="item-row">
-    <span style="display:inline-block;padding:2px 6px;border-radius:4px;font-size:10px;background:#E0F2FE;color:#0369A1;border:0.5px solid #7DD3FC;">Reparación</span>
+    <span style="display:inline-block;padding:2px 6px;border-radius:4px;font-size:10px;background:#E0F2FE;color:#0369A1;border:0.5px solid #7DD3FC;min-width:14px;text-align:center;">${i+1}</span>
     <span class="item-row-desc">${it.desc}</span>
     <span class="item-row-price">$${it.precio.toLocaleString('es-AR')}</span>
     <button class="action-btn" onclick="removePdItem(${i})"><i class="ti ti-trash"></i></button>
@@ -1520,6 +1521,7 @@ function renderPdFotosPreview(){
       <button class="action-btn" onclick="removePdFoto(${i})" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.5);color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;padding:0;"><i class="ti ti-x"></i></button>
     </div>`).join('');
 }
+let _editPadelRepId=null;
 function savePadelRep(){
   const cliente=document.getElementById('pd-cliente').value;
   if(!cliente){alert('Seleccioná un cliente.');return;}
@@ -1527,17 +1529,31 @@ function savePadelRep(){
   const suma=pdItems.reduce((s,it)=>s+it.precio,0);
   const totalCustom=parseFloat(document.getElementById('pd-precio-total').value)||0;
   const total=totalCustom>0?totalCustom:suma;
-  padelReps.push({
-    id:padelRepCounter++,
-    fecha:document.getElementById('pd-fecha').value,
-    cliente,cel:document.getElementById('pd-cel').value,
-    items:pdItems.map(it=>({...it})),
-    total,
-    fotos:[...pdFotosData],
-    notas:document.getElementById('pd-notas').value,
-    cobros:[],
-    estado:'Pendiente'
-  });
+  if(_editPadelRepId!==null){
+    const r=padelReps.find(r=>r.id===_editPadelRepId);
+    if(r){
+      r.fecha=document.getElementById('pd-fecha').value;
+      r.cliente=cliente;
+      r.cel=document.getElementById('pd-cel').value;
+      r.items=pdItems.map(it=>({...it}));
+      r.total=total;
+      r.fotos=[...pdFotosData];
+      r.notas=document.getElementById('pd-notas').value;
+    }
+    _editPadelRepId=null;
+  } else {
+    padelReps.push({
+      id:padelRepCounter++,
+      fecha:document.getElementById('pd-fecha').value,
+      cliente,cel:document.getElementById('pd-cel').value,
+      items:pdItems.map(it=>({...it})),
+      total,
+      fotos:[...pdFotosData],
+      notas:document.getElementById('pd-notas').value,
+      cobros:[],
+      estado:'Pendiente'
+    });
+  }
   pdItems=[];pdFotosData=[];
   closeModal('modal-padel');
   renderPadelReps();scheduleSave();
@@ -1589,7 +1605,7 @@ function openPadelDetalle(id){
       <div class="det-field"><label>Estado</label><p>${r.estado}</p></div>
     </div></div>
     <div class="det-section"><h4>Reparaciones</h4>
-      ${r.items.map(it=>`<div class="item-row"><span style="display:inline-block;padding:2px 6px;border-radius:4px;font-size:10px;background:#E0F2FE;color:#0369A1;">Reparación</span><span class="item-row-desc">${it.desc}</span><span class="item-row-price">$${it.precio.toLocaleString('es-AR')}</span></div>`).join('')}
+      ${r.items.map((it,i)=>`<div class="item-row"><span style="display:inline-block;padding:2px 6px;border-radius:4px;font-size:10px;background:#E0F2FE;color:#0369A1;min-width:14px;text-align:center;">${i+1}</span><span class="item-row-desc">${it.desc}</span><span class="item-row-price">$${it.precio.toLocaleString('es-AR')}</span></div>`).join('')}
       <div class="total-bar" style="background:#E0F2FE;"><span class="total-bar-label">Total</span><span class="total-bar-amount">$${r.total.toLocaleString('es-AR')}</span></div>
     </div>
     ${r.fotos&&r.fotos.length?`<div class="det-section"><h4>Fotos</h4><div style="display:flex;gap:8px;flex-wrap:wrap;">${r.fotos.map(f=>`<img src="${f}" style="width:120px;height:120px;object-fit:cover;border-radius:8px;border:0.5px solid var(--border-light);cursor:pointer;" onclick="openLightbox('${f}')">`).join('')}</div></div>`:''}
@@ -1602,17 +1618,34 @@ function openPadelDetalle(id){
         </div>`:
         `<div style="display:flex;gap:1rem;margin-bottom:8px;">
           <div style="font-size:12px;"><span style="color:var(--text-muted);">Cobrado:</span> <strong style="color:#2A5A2A;">$${cobrado.toLocaleString('es-AR')}</strong></div>
-          <div style="font-size:12px;"><span style="color:var(--text-muted);">Saldo:</span> <strong style="color:#C0392B;">$${saldo.toLocaleString('es-AR')}</strong></div>
+          ${cobrado>0&&saldo>0?`<div style="font-size:12px;"><span style="color:var(--text-muted);">Saldo:</span> <strong style="color:#C0392B;">$${saldo.toLocaleString('es-AR')}</strong></div>`:''}
         </div>
         ${r.cobros&&r.cobros.length?r.cobros.map((c,i)=>`<div class="cobro-row"><div><span>$${c.monto.toLocaleString('es-AR')}</span> <small>— ${c.fecha}</small></div><button class="action-btn" onclick="deletePadelCobro(${r.id},${i})"><i class="ti ti-trash"></i></button></div>`).join(''):''}
         ${saldo>0?`<div class="cobro-add-row"><input type="number" id="pd-cobro-monto-${r.id}" placeholder="Monto..." min="0"><button class="btn" onclick="registrarPadelCobro(${r.id})" style="background:#0EA5E9;color:#fff;border-color:#0EA5E9;"><i class="ti ti-coin"></i> Registrar</button></div>`:''}`}
     </div>`;
   document.getElementById('padel-det-footer').innerHTML=`
     <button class="btn" onclick="guardarYCerrarPadel(${r.id})" style="background:#0EA5E9;color:#fff;border-color:#0EA5E9;"><i class="ti ti-device-floppy"></i> Guardar y cerrar</button>
+    <button class="btn" onclick="editarPadelRep(${r.id})"><i class="ti ti-edit"></i> Editar</button>
     <button class="btn" onclick="compartirPadel(${r.id})" style="background:#25D366;color:#fff;border-color:#25D366;"><i class="ti ti-share"></i> Compartir</button>`;
   document.getElementById('modal-padel-detalle').classList.add('open');
 }
 function guardarYCerrarPadel(id){scheduleSave();closeModal('modal-padel-detalle');renderPadelReps();}
+function editarPadelRep(id){
+  const r=padelReps.find(r=>r.id===id);if(!r)return;
+  _editPadelRepId=id;
+  closeModal('modal-padel-detalle');
+  document.getElementById('pd-fecha').value=r.fecha||'';
+  populatePadelClienteSelect();
+  document.getElementById('pd-cliente').value=r.cliente;
+  document.getElementById('pd-cel').value=r.cel||'';
+  pdItems=r.items.map(it=>({...it}));
+  pdFotosData=[...(r.fotos||[])];
+  document.getElementById('pd-precio-total').value=r.total||'';
+  document.getElementById('pd-notas').value=r.notas||'';
+  renderPdItems();
+  renderPdFotosPreview();
+  document.getElementById('modal-padel').classList.add('open');
+}
 function registrarPadelCobro(id){
   const r=padelReps.find(r=>r.id===id);if(!r)return;
   const monto=parseFloat(document.getElementById('pd-cobro-monto-'+id).value)||0;
@@ -1637,11 +1670,13 @@ async function compartirPadel(id){
   const saldo=Math.max(0,r.total-cobrado);
   let texto=`🏓 *Reparación de paleta — Joaquin Rossi*\n\n`;
   texto+=`Cliente: ${r.cliente}\n\n`;
-  texto+=`*Detalle:*\n`;
-  r.items.forEach(it=>{texto+=`• ${it.desc}: $${it.precio.toLocaleString('es-AR')}\n`;});
+  texto+=`*Reparaciones:*\n`;
+  r.items.forEach((it,i)=>{texto+=`${i+1}. ${it.desc}: $${it.precio.toLocaleString('es-AR')}\n`;});
   texto+=`\n*Total: $${r.total.toLocaleString('es-AR')}*\n`;
-  if(cobrado>0)texto+=`Seña: $${cobrado.toLocaleString('es-AR')}\n`;
-  if(saldo>0)texto+=`Saldo: $${saldo.toLocaleString('es-AR')}\n`;
+  if(cobrado>0){
+    texto+=`Seña: $${cobrado.toLocaleString('es-AR')}\n`;
+    if(saldo>0)texto+=`Saldo: $${saldo.toLocaleString('es-AR')}\n`;
+  }
   if(saldo>0){
     texto+=`\n💳 *Datos para transferencia:*\n`;
     texto+=`Alias: *musicaydeporte*\n`;
