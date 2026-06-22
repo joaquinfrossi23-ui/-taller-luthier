@@ -1483,7 +1483,7 @@ function addPadelItem(){
   const precio=parseFloat(document.getElementById('pd-item-precio').value)||0;
   if(precio<=0){alert('Ingresá el precio.');return;}
   const num=pdItems.length+1;
-  const nombre=desc?`Reparación ${num} — ${desc}`:`Reparación ${num}`;
+  const nombre=desc?`${num}. ${desc}`:`${num}.`;
   pdItems.push({desc:nombre,precio});
   renderPdItems();
   document.getElementById('pd-item-desc').value='';
@@ -1675,7 +1675,7 @@ async function compartirPadel(id){
   let texto=`🏓 *Reparación de paleta — Joaquin Rossi*\n\n`;
   texto+=`Cliente: ${r.cliente}\n\n`;
   texto+=`*Reparaciones:*\n`;
-  r.items.forEach((it,i)=>{texto+=`${i+1}. ${it.desc}: $${it.precio.toLocaleString('es-AR')}\n`;});
+  r.items.forEach((it,i)=>{texto+=`${it.desc} $${it.precio.toLocaleString('es-AR')}\n`;});
   texto+=`\n*Total: $${r.total.toLocaleString('es-AR')}*\n`;
   if(cobrado>0){
     texto+=`Seña: $${cobrado.toLocaleString('es-AR')}\n`;
