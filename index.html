@@ -1491,6 +1491,9 @@ function removePdItem(i){pdItems.splice(i,1);renderPdItems();}
 function renderPdItems(){
   const el=document.getElementById('pd-items-list');
   const bar=document.getElementById('pd-total-bar');
+  // Actualizar placeholder con próximo número
+  const descInput=document.getElementById('pd-item-desc');
+  if(descInput)descInput.placeholder=`${pdItems.length+1}. Descripción del arreglo...`;
   if(!pdItems.length){el.innerHTML='<p style="font-size:12px;color:var(--text-muted);font-style:italic;padding:4px 0;">Sin reparaciones.</p>';bar.style.display='none';return;}
   el.innerHTML=pdItems.map((it,i)=>`<div class="item-row">
     <span style="display:inline-block;padding:2px 6px;border-radius:4px;font-size:10px;background:#E0F2FE;color:#0369A1;border:0.5px solid #7DD3FC;min-width:14px;text-align:center;">${i+1}</span>
