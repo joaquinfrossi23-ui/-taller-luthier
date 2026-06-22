@@ -1481,8 +1481,10 @@ function savePadelCliente(){
 function addPadelItem(){
   const desc=document.getElementById('pd-item-desc').value.trim();
   const precio=parseFloat(document.getElementById('pd-item-precio').value)||0;
-  if(!desc){alert('Ingresá la descripción.');return;}
-  pdItems.push({desc,precio});
+  if(precio<=0){alert('Ingresá el precio.');return;}
+  const num=pdItems.length+1;
+  const nombre=desc?`Reparación ${num} — ${desc}`:`Reparación ${num}`;
+  pdItems.push({desc:nombre,precio});
   renderPdItems();
   document.getElementById('pd-item-desc').value='';
   document.getElementById('pd-item-precio').value='';
@@ -1493,10 +1495,9 @@ function renderPdItems(){
   const bar=document.getElementById('pd-total-bar');
   // Actualizar placeholder con próximo número
   const descInput=document.getElementById('pd-item-desc');
-  if(descInput)descInput.placeholder=`${pdItems.length+1}. Descripción del arreglo...`;
+  if(descInput)descInput.placeholder=`Descripción (opcional)...`;
   if(!pdItems.length){el.innerHTML='<p style="font-size:12px;color:var(--text-muted);font-style:italic;padding:4px 0;">Sin reparaciones.</p>';bar.style.display='none';return;}
   el.innerHTML=pdItems.map((it,i)=>`<div class="item-row">
-    <span style="display:inline-block;padding:2px 6px;border-radius:4px;font-size:10px;background:#E0F2FE;color:#0369A1;border:0.5px solid #7DD3FC;min-width:14px;text-align:center;">${i+1}</span>
     <span class="item-row-desc">${it.desc}</span>
     <span class="item-row-price">$${it.precio.toLocaleString('es-AR')}</span>
     <button class="action-btn" onclick="removePdItem(${i})"><i class="ti ti-trash"></i></button>
@@ -1608,7 +1609,7 @@ function openPadelDetalle(id){
       <div class="det-field"><label>Estado</label><p>${r.estado}</p></div>
     </div></div>
     <div class="det-section"><h4>Reparaciones</h4>
-      ${r.items.map((it,i)=>`<div class="item-row"><span style="display:inline-block;padding:2px 6px;border-radius:4px;font-size:10px;background:#E0F2FE;color:#0369A1;min-width:14px;text-align:center;">${i+1}</span><span class="item-row-desc">${it.desc}</span><span class="item-row-price">$${it.precio.toLocaleString('es-AR')}</span></div>`).join('')}
+      ${r.items.map((it,i)=>`<div class="item-row"><span class="item-row-desc">${it.desc}</span><span class="item-row-price">$${it.precio.toLocaleString('es-AR')}</span></div>`).join('')}
       <div class="total-bar" style="background:#E0F2FE;"><span class="total-bar-label">Total</span><span class="total-bar-amount">$${r.total.toLocaleString('es-AR')}</span></div>
     </div>
     ${r.fotos&&r.fotos.length?`<div class="det-section"><h4>Fotos</h4><div style="display:flex;gap:8px;flex-wrap:wrap;">${r.fotos.map(f=>`<img src="${f}" style="width:120px;height:120px;object-fit:cover;border-radius:8px;border:0.5px solid var(--border-light);cursor:pointer;" onclick="openLightbox('${f}')">`).join('')}</div></div>`:''}
