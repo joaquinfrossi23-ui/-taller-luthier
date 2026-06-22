@@ -543,8 +543,8 @@ tr:hover td{background:rgba(196,149,106,0.04);}
         </div>
         <div class="card">
           <div class="card-header" style="background:#0EA5E9;color:#fff;"><span>Clientes padel</span></div>
-          <table><thead><tr style="background:#E0F2FE;"><th>Nombre</th><th>Celular</th><th>Reparaciones</th><th></th></tr></thead>
-          <tbody id="padel-clientes-table"><tr><td colspan="4" class="empty">Sin clientes.</td></tr></tbody></table>
+          <table><thead><tr style="background:#E0F2FE;"><th>Nombre</th><th>Celular</th><th>Localidad</th><th>Reparaciones</th><th></th></tr></thead>
+          <tbody id="padel-clientes-table"><tr><td colspan="5" class="empty">Sin clientes.</td></tr></tbody></table>
         </div>
       </div>
 
@@ -842,7 +842,10 @@ tr:hover td{background:rgba(196,149,106,0.04);}
     <div class="modal-header" style="background:#0EA5E9;"><h3 style="color:#fff;">Nuevo cliente padel</h3><button class="action-btn" onclick="closeModal('modal-padel-cliente')" style="color:#fff;"><i class="ti ti-x"></i></button></div>
     <div class="modal-body">
       <div class="field"><label>Nombre</label><input type="text" id="pdc-nombre" placeholder="Nombre del cliente"></div>
-      <div class="field"><label>Celular</label><input type="text" id="pdc-cel" placeholder="Número de celular"></div>
+      <div class="row2">
+        <div class="field"><label>Celular</label><input type="text" id="pdc-cel" placeholder="Número de celular"></div>
+        <div class="field"><label>Localidad</label><input type="text" id="pdc-localidad" placeholder="Localidad"></div>
+      </div>
       <div class="field"><label>Notas</label><textarea id="pdc-notas" placeholder="Opcional..."></textarea></div>
     </div>
     <div class="modal-footer"><button class="btn" onclick="closeModal('modal-padel-cliente')">Cancelar</button><button class="btn" onclick="savePadelCliente()" style="background:#0EA5E9;color:#fff;border-color:#0EA5E9;">Guardar</button></div>
@@ -942,6 +945,8 @@ tr:hover td{background:rgba(196,149,106,0.04);}
         <div class="total-bar" id="editp-total-bar" style="display:none;"><span class="total-bar-label">Total</span><span class="total-bar-amount" id="editp-total">$0</span></div>
       </div>
       <div class="field"><label>Observaciones</label><textarea id="edit-p-obs"></textarea></div>
+      <div class="field"><label>Fotos (registro interno)</label><input type="file" id="edit-p-fotos" accept="image/*" multiple onchange="handleEditPresFotos(event)"></div>
+      <div id="edit-p-fotos-preview" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
     </div>
     <div class="modal-footer"><button class="btn" onclick="closeModal('modal-editar-presupuesto')">Cancelar</button><button class="btn btn-primary" onclick="guardarEditPresupuesto()">Guardar cambios</button></div>
   </div>
@@ -1440,24 +1445,37 @@ function populatePadelClienteSelect(){
     document.getElementById('pd-cel').value=opt&&opt.dataset.cel||'';
   };
 }
+let _editPadelClienteIdx=null;
 function openPadelClienteModal(){
+  _editPadelClienteIdx=null;
+  document.querySelector('#modal-padel-cliente h3').textContent='Nuevo cliente padel';
   document.getElementById('pdc-nombre').value='';
   document.getElementById('pdc-cel').value='';
+  document.getElementById('pdc-localidad').value='';
   document.getElementById('pdc-notas').value='';
   document.getElementById('modal-padel-cliente').classList.add('open');
 }
 function savePadelCliente(){
   const nombre=document.getElementById('pdc-nombre').value.trim();
   if(!nombre){alert('Ingresá el nombre.');return;}
-  padelClientes.push({nombre,cel:document.getElementById('pdc-cel').value,notas:document.getElementById('pdc-notas').value});
+  const cel=document.getElementById('pdc-cel').value;
+  const localidad=document.getElementById('pdc-localidad').value;
+  const notas=document.getElementById('pdc-notas').value;
+  if(_editPadelClienteIdx!==null){
+    const oldNombre=padelClientes[_editPadelClienteIdx].nombre;
+    if(oldNombre!==nombre)padelReps.forEach(r=>{if(r.cliente===oldNombre)r.cliente=nombre;});
+    padelClientes[_editPadelClienteIdx]={nombre,cel,localidad,notas};
+  } else {
+    padelClientes.push({nombre,cel,localidad,notas});
+  }
   closeModal('modal-padel-cliente');
-  renderPadelClientes();scheduleSave();
-  // Si modal padel está abierto, actualizar selector
+  renderPadelClientes();renderPadelReps();scheduleSave();
   populatePadelClienteSelect();
   const sel=document.getElementById('pd-cliente');
-  if(sel)sel.value=nombre;
+  if(sel&&_editPadelClienteIdx===null){sel.value=nombre;}
   const celInp=document.getElementById('pd-cel');
-  if(celInp)celInp.value=document.getElementById('pdc-cel').value;
+  if(celInp&&_editPadelClienteIdx===null){celInp.value=cel;}
+  _editPadelClienteIdx=null;
 }
 function addPadelItem(){
   const desc=document.getElementById('pd-item-desc').value.trim();
@@ -1637,17 +1655,18 @@ async function compartirPadel(id){
 }
 function renderPadelClientes(){
   const buscar=(document.getElementById('padel-clientes-buscar')?document.getElementById('padel-clientes-buscar').value||'':'').toLowerCase().trim();
-  const filtrados=buscar?padelClientes.filter(c=>c.nombre.toLowerCase().includes(buscar)):padelClientes;
+  const filtrados=buscar?padelClientes.filter(c=>c.nombre.toLowerCase().includes(buscar)||(c.localidad||'').toLowerCase().includes(buscar)):padelClientes;
   const countEl=document.getElementById('padel-clientes-count');
   if(countEl)countEl.textContent=buscar?`${filtrados.length} de ${padelClientes.length}`:`${padelClientes.length} clientes`;
   const tbody=document.getElementById('padel-clientes-table');if(!tbody)return;
-  if(!filtrados.length){tbody.innerHTML=`<tr><td colspan="4" class="empty">${buscar?'Sin resultados.':'Sin clientes.'}</td></tr>`;return;}
+  if(!filtrados.length){tbody.innerHTML=`<tr><td colspan="5" class="empty">${buscar?'Sin resultados.':'Sin clientes.'}</td></tr>`;return;}
   tbody.innerHTML=filtrados.map((c,i)=>{
     const idx=padelClientes.indexOf(c);
     const reps=padelReps.filter(r=>r.cliente===c.nombre).length;
     return`<tr>
       <td style="font-weight:500;color:var(--text-dark);">${c.nombre}</td>
       <td>${c.cel||'—'}</td>
+      <td>${c.localidad||'—'}</td>
       <td>${reps}</td>
       <td style="display:flex;gap:3px;">
         <button class="action-btn" onclick="editarPadelCliente(${idx})" title="Editar"><i class="ti ti-edit"></i></button>
@@ -1658,11 +1677,13 @@ function renderPadelClientes(){
 }
 function editarPadelCliente(i){
   const c=padelClientes[i];if(!c)return;
-  const nombre=prompt('Nombre:',c.nombre);if(!nombre)return;
-  const cel=prompt('Celular:',c.cel||'');
-  if(c.nombre!==nombre)padelReps.forEach(r=>{if(r.cliente===c.nombre)r.cliente=nombre;});
-  c.nombre=nombre;c.cel=cel||'';
-  renderPadelClientes();renderPadelReps();scheduleSave();
+  _editPadelClienteIdx=i;
+  document.querySelector('#modal-padel-cliente h3').textContent='Editar cliente padel';
+  document.getElementById('pdc-nombre').value=c.nombre;
+  document.getElementById('pdc-cel').value=c.cel||'';
+  document.getElementById('pdc-localidad').value=c.localidad||'';
+  document.getElementById('pdc-notas').value=c.notas||'';
+  document.getElementById('modal-padel-cliente').classList.add('open');
 }
 function deletePadelCliente(i){
   confirmar('¿Eliminar este cliente?','',()=>{
@@ -2397,7 +2418,9 @@ function editarPresupuesto(id){
   document.getElementById('edit-p-obs').value=p.obs||'';
   // Cargar ítems
   editPresItems=(p.items||[]).map(it=>({...it}));
+  editPresFotosData=[...(p.fotos||[])];
   renderEditPresItems();
+  renderEditPresFotosPreview();
   // Poblar selectores
   const tSel=document.getElementById('editp-trabajo-sel');
   if(tSel)tSel.innerHTML='<option value="">— Elegir trabajo de la lista —</option>'+trabajos.map(t=>`<option value="${t.id}">${t.desc} — $${t.precio.toLocaleString('es-AR')}</option>`).join('');
@@ -2473,8 +2496,9 @@ function guardarEditPresupuesto(){
   p.marca=document.getElementById('edit-p-marca').value;
   p.obs=document.getElementById('edit-p-obs').value;
   p.items=editPresItems.map(it=>({...it}));
+  p.fotos=[...editPresFotosData];
   p.monto=editPresItems.filter(it=>it.tipo!=='material-glam').reduce((s,it)=>s+it.qty*it.precio,0);
-  editPresItems=[];
+  editPresItems=[];editPresFotosData=[];
   closeModal('modal-editar-presupuesto');renderPresupuestos();scheduleSave();
 }
 
@@ -2735,10 +2759,12 @@ let _scrollOrdenesAlFinal=false;
 let _scrollGlamAlFinal=false;
 function openPresupuestoModal(){
   presItems=[];
+  presFotosData=[];
   populateClienteSelect('p-cliente');
   renderPresItems();
   document.querySelectorAll('#modal-presupuesto input:not([type=file]),#modal-presupuesto textarea').forEach(el=>el.value='');
   document.getElementById('p-origen').value='propio';
+  document.getElementById('p-fotos-preview').innerHTML='';
   // Poblar selector de trabajos
   const tSel=document.getElementById('pres-trabajo-sel');
   if(tSel)tSel.innerHTML='<option value="">— Elegir trabajo de la lista —</option>'+trabajos.map(t=>`<option value="${t.id}">${t.desc} — $${t.precio.toLocaleString('es-AR')}</option>`).join('');
@@ -2813,6 +2839,38 @@ function renderPresItems(){
   bar.style.display='flex';
   document.getElementById('pres-total').textContent='$'+total.toLocaleString('es-AR');
 }
+var presFotosData=[];
+var editPresFotosData=[];
+function handlePresFotos(e){
+  Array.from(e.target.files).forEach(f=>{
+    const reader=new FileReader();
+    reader.onload=ev=>{presFotosData.push(ev.target.result);renderPresFotosPreview();};
+    reader.readAsDataURL(f);
+  });
+}
+function removePresFoto(i){presFotosData.splice(i,1);renderPresFotosPreview();}
+function renderPresFotosPreview(){
+  document.getElementById('p-fotos-preview').innerHTML=presFotosData.map((f,i)=>
+    `<div style="position:relative;width:60px;height:60px;border-radius:6px;overflow:hidden;border:0.5px solid var(--border-light);">
+      <img src="${f}" style="width:100%;height:100%;object-fit:cover;">
+      <button class="action-btn" onclick="removePresFoto(${i})" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.5);color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;padding:0;"><i class="ti ti-x"></i></button>
+    </div>`).join('');
+}
+function handleEditPresFotos(e){
+  Array.from(e.target.files).forEach(f=>{
+    const reader=new FileReader();
+    reader.onload=ev=>{editPresFotosData.push(ev.target.result);renderEditPresFotosPreview();};
+    reader.readAsDataURL(f);
+  });
+}
+function removeEditPresFoto(i){editPresFotosData.splice(i,1);renderEditPresFotosPreview();}
+function renderEditPresFotosPreview(){
+  document.getElementById('edit-p-fotos-preview').innerHTML=editPresFotosData.map((f,i)=>
+    `<div style="position:relative;width:60px;height:60px;border-radius:6px;overflow:hidden;border:0.5px solid var(--border-light);">
+      <img src="${f}" style="width:100%;height:100%;object-fit:cover;">
+      <button class="action-btn" onclick="removeEditPresFoto(${i})" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.5);color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;padding:0;"><i class="ti ti-x"></i></button>
+    </div>`).join('');
+}
 function savePresupuesto(){
   const cliente=document.getElementById('p-cliente').value;
   const instrumento=document.getElementById('p-instrumento').value;
@@ -2825,11 +2883,12 @@ function savePresupuesto(){
     marca:document.getElementById('p-marca').value,
     obs:document.getElementById('p-obs').value,
     items:presItems.map(it=>({...it})),
+    fotos:[...presFotosData],
     monto:total,
     estado:'Pendiente',
     fecha:new Date().toLocaleDateString('es-AR')
   });
-  presItems=[];
+  presItems=[];presFotosData=[];
   renderPresupuestos();closeModal('modal-presupuesto');scheduleSave();
 }
 function saveRemito(){const fecha=document.getElementById('r-fecha').value;if(!fecha){alert('Ingresá la fecha.');return;}remitos.push({id:remitoCounter++,fecha,retiro:document.getElementById('r-retiro').value,devuelvo:document.getElementById('r-devuelvo').value,notas:document.getElementById('r-notas').value});renderRemitos();closeModal('modal-remito');scheduleSave();document.querySelectorAll('#modal-remito input,#modal-remito textarea').forEach(el=>el.value='');}
@@ -3029,7 +3088,10 @@ function verPresupuesto(id){
         </div>
       </div>`:''}
       ${p.obs?`<div style="background:#FFF9F0;border:0.5px solid #E8C98A;border-radius:8px;padding:10px 12px;margin-bottom:1rem;font-size:12px;color:#5C3D1E;font-style:italic;">${p.obs}</div>`:''}
-      <!-- Datos de pago -->
+      ${p.fotos&&p.fotos.length?`<div style="background:#F5F5F5;border:0.5px solid #DDD;border-radius:8px;padding:10px 12px;margin-bottom:1rem;">
+        <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">📷 Fotos (registro interno)</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">${p.fotos.map(f=>`<img src="${f}" style="width:100px;height:100px;object-fit:cover;border-radius:6px;border:0.5px solid #DDD;cursor:pointer;" onclick="openLightbox('${f}')">`).join('')}</div>
+      </div>`:''}
       <div style="background:#F0E8F7;border:0.5px solid #C9A8E0;border-radius:8px;padding:12px 1rem;">
         <div style="font-size:10px;color:#7B3FA0;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">💳 Datos para transferencia</div>
         <div style="font-size:13px;color:#1C0F05;margin-bottom:3px;"><strong>Alias:</strong> musicaydeporte</div>
