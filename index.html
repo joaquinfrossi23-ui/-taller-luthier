@@ -530,8 +530,8 @@ tr:hover td{background:rgba(196,149,106,0.04);}
       <div id="section-padel" class="section-hidden">
         <div class="card">
           <div class="card-header" style="background:#0EA5E9;color:#fff;"><span>Reparaciones de paletas</span></div>
-          <table><thead><tr style="background:#E0F2FE;"><th>Fecha</th><th>Cliente</th><th>Celular</th><th>Reparaciones</th><th>Total</th><th>Estado</th><th>Cobro</th><th></th></tr></thead>
-          <tbody id="padel-table"><tr><td colspan="8" class="empty">Sin reparaciones.</td></tr></tbody></table>
+          <table><thead><tr style="background:#E0F2FE;"><th>Fecha</th><th>Origen</th><th>Cliente</th><th>Celular</th><th>Reparaciones</th><th>Total</th><th>Estado</th><th>Cobro</th><th></th></tr></thead>
+          <tbody id="padel-table"><tr><td colspan="9" class="empty">Sin reparaciones.</td></tr></tbody></table>
         </div>
       </div>
 
@@ -804,7 +804,10 @@ tr:hover td{background:rgba(196,149,106,0.04);}
   <div class="modal modal-wide">
     <div class="modal-header" style="background:#0EA5E9;"><h3 style="color:#fff;">Nueva reparación</h3><button class="action-btn" onclick="closeModal('modal-padel')" style="color:#fff;"><i class="ti ti-x"></i></button></div>
     <div class="modal-body">
-      <div class="field"><label>Fecha</label><input type="date" id="pd-fecha"></div>
+      <div class="row2">
+        <div class="field"><label>Fecha</label><input type="date" id="pd-fecha"></div>
+        <div class="field"><label>Origen</label><select id="pd-origen"><option value="propio">Propio</option><option value="glam">GLAM</option></select></div>
+      </div>
       <div class="row2">
         <div class="field"><label>Cliente</label>
           <div style="display:flex;gap:6px;align-items:center;">
@@ -823,9 +826,9 @@ tr:hover td{background:rgba(196,149,106,0.04);}
           <button class="btn" onclick="addPadelItem()" style="padding:7px 10px;background:#0EA5E9;color:#fff;border-color:#0EA5E9;"><i class="ti ti-plus"></i></button>
         </div>
         <div class="field" style="margin-top:8px;"><label>Precio total (si es distinto a la suma)</label><input type="number" id="pd-precio-total" placeholder="Dejar vacío para usar la suma" min="0"></div>
-        <div class="total-bar" id="pd-total-bar" style="display:none;background:#E0F2FE;">
-          <span class="total-bar-label">Total</span>
-          <span class="total-bar-amount" id="pd-total">$0</span>
+        <div class="total-bar" id="pd-total-bar" style="display:none;background:#E0F2FE;color:#000;">
+          <span class="total-bar-label" style="color:#0369A1;">Total</span>
+          <span class="total-bar-amount" id="pd-total" style="color:#000;">$0</span>
         </div>
       </div>
       <div class="field"><label>Fotos del análisis</label><input type="file" id="pd-fotos" accept="image/*" multiple onchange="handlePadelFotos(event)"></div>
@@ -1424,6 +1427,7 @@ function openPadelModal(){
   _editPadelRepId=null;
   pdItems=[];pdFotosData=[];
   document.getElementById('pd-fecha').value=new Date().toISOString().split('T')[0];
+  document.getElementById('pd-origen').value='propio';
   document.getElementById('pd-cel').value='';
   document.getElementById('pd-notas').value='';
   document.getElementById('pd-item-desc').value='';
@@ -1537,6 +1541,7 @@ function savePadelRep(){
     const r=padelReps.find(r=>r.id===_editPadelRepId);
     if(r){
       r.fecha=document.getElementById('pd-fecha').value;
+      r.origen=document.getElementById('pd-origen').value;
       r.cliente=cliente;
       r.cel=document.getElementById('pd-cel').value;
       r.items=pdItems.map(it=>({...it}));
@@ -1549,6 +1554,7 @@ function savePadelRep(){
     padelReps.push({
       id:padelRepCounter++,
       fecha:document.getElementById('pd-fecha').value,
+      origen:document.getElementById('pd-origen').value,
       cliente,cel:document.getElementById('pd-cel').value,
       items:pdItems.map(it=>({...it})),
       total,
@@ -1571,6 +1577,7 @@ function renderPadelReps(){
     const cobroTag=cobrado===0?'':`<span class="badge ${cobrado>=r.total?'badge-cobrado':'badge-parcial'}">${cobrado>=r.total?'Cobrado':'Seña'}</span>`;
     return`<tr>
       <td style="font-size:12px;color:var(--text-muted);">${r.fecha}</td>
+      <td>${r.origen==='glam'?'<span class="tag-glam">GLAM</span>':'<span class="tag-propio">Propio</span>'}</td>
       <td style="font-weight:500;color:var(--text-dark);">${r.cliente}</td>
       <td style="font-size:12px;">${r.cel||'—'}</td>
       <td style="font-size:12px;">${r.items.map(it=>it.desc).join(', ')}</td>
@@ -1610,7 +1617,7 @@ function openPadelDetalle(id){
     </div></div>
     <div class="det-section"><h4>Reparaciones</h4>
       ${r.items.map((it,i)=>`<div class="item-row"><span class="item-row-desc">${it.desc}</span><span class="item-row-price">$${it.precio.toLocaleString('es-AR')}</span></div>`).join('')}
-      <div class="total-bar" style="background:#E0F2FE;"><span class="total-bar-label">Total</span><span class="total-bar-amount">$${r.total.toLocaleString('es-AR')}</span></div>
+      <div class="total-bar" style="background:#E0F2FE;color:#000;"><span class="total-bar-label" style="color:#0369A1;">Total</span><span class="total-bar-amount" style="color:#000;">$${r.total.toLocaleString('es-AR')}</span></div>
     </div>
     ${r.fotos&&r.fotos.length?`<div class="det-section"><h4>Fotos</h4><div style="display:flex;gap:8px;flex-wrap:wrap;">${r.fotos.map(f=>`<img src="${f}" style="width:120px;height:120px;object-fit:cover;border-radius:8px;border:0.5px solid var(--border-light);cursor:pointer;" onclick="openLightbox('${f}')">`).join('')}</div></div>`:''}
     ${r.notas?`<div class="det-section"><h4>Notas</h4><p style="font-size:13px;color:var(--text-muted);">${r.notas}</p></div>`:''}
@@ -1639,6 +1646,7 @@ function editarPadelRep(id){
   _editPadelRepId=id;
   closeModal('modal-padel-detalle');
   document.getElementById('pd-fecha').value=r.fecha||'';
+  document.getElementById('pd-origen').value=r.origen||'propio';
   populatePadelClienteSelect();
   document.getElementById('pd-cliente').value=r.cliente;
   document.getElementById('pd-cel').value=r.cel||'';
@@ -1686,8 +1694,23 @@ async function compartirPadel(id){
     texto+=`Alias: *musicaydeporte*\n`;
     texto+=`Titular: Joaquin Facundo Rossi`;
   }
+  // Convertir fotos base64 a archivos para compartir
+  const files=[];
+  if(r.fotos&&r.fotos.length){
+    for(let i=0;i<r.fotos.length;i++){
+      try{
+        const res=await fetch(r.fotos[i]);
+        const blob=await res.blob();
+        files.push(new File([blob],`reparacion_${r.id}_foto_${i+1}.jpg`,{type:blob.type||'image/jpeg'}));
+      }catch(e){}
+    }
+  }
   if(navigator.share){
-    try{await navigator.share({title:`Reparación paleta — ${r.cliente}`,text:texto});}catch(e){}
+    const shareData={title:`Reparación paleta — ${r.cliente}`,text:texto};
+    if(files.length&&navigator.canShare&&navigator.canShare({files})){
+      shareData.files=files;
+    }
+    try{await navigator.share(shareData);}catch(e){}
   } else {
     navigator.clipboard.writeText(texto).then(()=>alert('Texto copiado al portapapeles.'));
   }
@@ -1732,16 +1755,21 @@ function deletePadelCliente(i){
 
 // NUEVO MÓDULO REMITOS GLAM
 let grOrdenes=[]; // órdenes seleccionadas para esta visita
+let grPadelReps=[]; // reparaciones padel GLAM para esta visita
 let grCompras=[]; // compras en GLAM
 
 function initRemitoGlam(){
-  // Fecha de hoy
   document.getElementById('gr-fecha').value=new Date().toISOString().split('T')[0];
   grOrdenes=[];
+  grPadelReps=[];
   grCompras=[];
   // Cargar automáticamente órdenes GLAM activas
   ordenes.filter(o=>o.origen==='glam'&&o.estado!=='Cobrado'&&o.estado!=='Entregado').forEach(o=>{
     if(!grOrdenes.find(id=>id===o.id))grOrdenes.push(o.id);
+  });
+  // Cargar automáticamente reparaciones padel GLAM activas
+  padelReps.filter(r=>r.origen==='glam'&&r.estado!=='Cobrado'&&r.estado!=='Entregado').forEach(r=>{
+    if(!grPadelReps.find(id=>id===r.id))grPadelReps.push(r.id);
   });
   poblarSelectorOrdenes();
   renderGrOrdenes();
@@ -1777,25 +1805,45 @@ function quitarOrdenRemito(id){
 function renderGrOrdenes(){
   const el=document.getElementById('gr-ordenes-lista');
   if(!el)return;
-  if(!grOrdenes.length){el.innerHTML='<p style="font-size:12px;color:var(--text-muted);font-style:italic;">Sin órdenes.</p>';document.getElementById('gr-total-cobrar').style.display='none';renderGrStock();return;}
+  if(!grOrdenes.length&&!grPadelReps.length){el.innerHTML='<p style="font-size:12px;color:var(--text-muted);font-style:italic;">Sin órdenes.</p>';document.getElementById('gr-total-cobrar').style.display='none';renderGrStock();return;}
   let totalCobrar=0;
-  el.innerHTML=grOrdenes.map(id=>{
+  let html=grOrdenes.map(id=>{
     const o=ordenes.find(o=>o.id===id);if(!o)return'';
     const cobros=o.cobros||[];
     const total=calcTotal(o.items||[]),cobrado=calcCobrado(cobros),saldo=Math.max(0,total-cobrado);
     totalCobrar+=saldo;
     return`<div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;background:var(--cream);border-radius:6px;padding:8px 10px;border:0.5px solid var(--border-light);margin-bottom:4px;">
       <div>
-        <div style="font-size:13px;font-weight:500;color:var(--text-dark);">${o.instrumento}${o.marca?' ('+o.marca+')':''}</div>
+        <div style="font-size:13px;font-weight:500;color:var(--text-dark);">🎸 ${o.instrumento}${o.marca?' ('+o.marca+')':''}</div>
         <div style="font-size:11px;color:var(--text-muted);">${o.cliente} · <span class="badge ${badgeClass(o.estado)}" style="font-size:10px;padding:1px 6px;">${o.estado}</span>${saldo>0?` · <span style="color:#C0392B;font-weight:500;">Saldo: $${saldo.toLocaleString('es-AR')}</span>`:' · <span style="color:#2A5A2A;">Sin saldo</span>'}</div>
       </div>
       <button class="action-btn" onclick="quitarOrdenRemito(${id})"><i class="ti ti-x"></i></button>
     </div>`;
   }).join('');
+  // Padel GLAM
+  html+=grPadelReps.map(id=>{
+    const r=padelReps.find(r=>r.id===id);if(!r)return'';
+    const cobrado=r.cobros?r.cobros.reduce((s,c)=>s+c.monto,0):0;
+    const saldo=Math.max(0,r.total-cobrado);
+    totalCobrar+=saldo;
+    return`<div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;background:#E0F2FE;border-radius:6px;padding:8px 10px;border:0.5px solid #7DD3FC;margin-bottom:4px;">
+      <div>
+        <div style="font-size:13px;font-weight:500;color:var(--text-dark);">🏓 Paleta — ${r.items.map(it=>it.desc).join(', ')}</div>
+        <div style="font-size:11px;color:var(--text-muted);">${r.cliente} · Total: $${r.total.toLocaleString('es-AR')}${saldo>0?` · <span style="color:#C0392B;font-weight:500;">Saldo: $${saldo.toLocaleString('es-AR')}</span>`:' · <span style="color:#2A5A2A;">Sin saldo</span>'}</div>
+      </div>
+      <button class="action-btn" onclick="quitarPadelRemito(${id})"><i class="ti ti-x"></i></button>
+    </div>`;
+  }).join('');
+  el.innerHTML=html;
   const bar=document.getElementById('gr-total-cobrar');
   bar.style.display='flex';
   document.getElementById('gr-total-cobrar-monto').textContent='$'+totalCobrar.toLocaleString('es-AR');
   renderGrStock();
+}
+function quitarPadelRemito(id){
+  grPadelReps=grPadelReps.filter(i=>i!==id);
+  renderGrOrdenes();
+  actualizarLiquidacion();
 }
 
 function renderGrStock(){
@@ -1843,14 +1891,20 @@ function renderGrCompras(){
 }
 
 function actualizarLiquidacion(){
-  // Comisión: 10% de mano de obra de órdenes GLAM seleccionadas
-  const comision=grOrdenes.reduce((s,id)=>{
+  // Comisión guitarras: 10% de mano de obra (solo ítems tipo trabajo)
+  const comisionGuitarras=grOrdenes.reduce((s,id)=>{
     const o=ordenes.find(o=>o.id===id);if(!o||o.origen!=='glam')return s;
-    const mano=(o.items||[]).filter(it=>it.tipo!=='material'&&it.tipo!=='material-glam').reduce((a,it)=>a+it.qty*it.precio,0);
-    return s+mano*0.1;
+    const mano=(o.items||[]).filter(it=>it.tipo==='trabajo').reduce((a,it)=>a+it.qty*it.precio,0);
+    return s+Math.round(mano*0.1);
   },0);
+  // Comisión padel: 10% del total de reparaciones
+  const comisionPadel=grPadelReps.reduce((s,id)=>{
+    const r=padelReps.find(r=>r.id===id);if(!r||r.origen!=='glam')return s;
+    return s+Math.round(r.total*0.1);
+  },0);
+  const comision=comisionGuitarras+comisionPadel;
   const combustible=parseFloat(document.getElementById('gr-combustible').value)||0;
-  const saldo=combustible-comision; // positivo = te deben, negativo = debés
+  const saldo=combustible-comision;
   document.getElementById('gr-comision-monto').textContent='$'+comision.toLocaleString('es-AR',{maximumFractionDigits:0});
   document.getElementById('gr-saldo-monto').textContent='$'+Math.abs(saldo).toLocaleString('es-AR',{maximumFractionDigits:0});
   document.getElementById('gr-saldo-label').textContent=saldo>=0?'GLAM te debe':'Vos les debés';
@@ -1860,11 +1914,16 @@ function actualizarLiquidacion(){
 function guardarRemitoGlam(){
   const fecha=document.getElementById('gr-fecha').value;
   if(!fecha){alert('Ingresá la fecha.');return;}
-  const comision=grOrdenes.reduce((s,id)=>{
+  const comisionGuitarras=grOrdenes.reduce((s,id)=>{
     const o=ordenes.find(o=>o.id===id);if(!o||o.origen!=='glam')return s;
-    const mano=(o.items||[]).filter(it=>it.tipo!=='material'&&it.tipo!=='material-glam').reduce((a,it)=>a+it.qty*it.precio,0);
-    return s+mano*0.1;
+    const mano=(o.items||[]).filter(it=>it.tipo==='trabajo').reduce((a,it)=>a+it.qty*it.precio,0);
+    return s+Math.round(mano*0.1);
   },0);
+  const comisionPadel=grPadelReps.reduce((s,id)=>{
+    const r=padelReps.find(r=>r.id===id);if(!r||r.origen!=='glam')return s;
+    return s+Math.round(r.total*0.1);
+  },0);
+  const comision=comisionGuitarras+comisionPadel;
   const combustible=parseFloat(document.getElementById('gr-combustible').value)||0;
   const stockItems=[];
   grOrdenes.forEach(id=>{
@@ -1890,11 +1949,16 @@ function guardarRemitoGlam(){
 
 function generarRemitoGlam(){
   const fecha=document.getElementById('gr-fecha').value||new Date().toLocaleDateString('es-AR');
-  const comision=grOrdenes.reduce((s,id)=>{
+  const comisionGuitarras=grOrdenes.reduce((s,id)=>{
     const o=ordenes.find(o=>o.id===id);if(!o||o.origen!=='glam')return s;
-    const mano=(o.items||[]).filter(it=>it.tipo!=='material'&&it.tipo!=='material-glam').reduce((a,it)=>a+it.qty*it.precio,0);
-    return s+mano*0.1;
+    const mano=(o.items||[]).filter(it=>it.tipo==='trabajo').reduce((a,it)=>a+it.qty*it.precio,0);
+    return s+Math.round(mano*0.1);
   },0);
+  const comisionPadel=grPadelReps.reduce((s,id)=>{
+    const r=padelReps.find(r=>r.id===id);if(!r||r.origen!=='glam')return s;
+    return s+Math.round(r.total*0.1);
+  },0);
+  const comision=comisionGuitarras+comisionPadel;
   const combustible=parseFloat(document.getElementById('gr-combustible').value)||0;
   const saldo=combustible-comision;
   const stockItems=[];
@@ -2953,7 +3017,7 @@ function renderOrdenes(){
     if(card)setTimeout(()=>card.scrollTop=card.scrollHeight,100);
   }
 }
-function renderGlam(){const g=ordenes.filter(o=>o.origen==='glam');const getMano=o=>(o.items||[]).filter(it=>it.tipo!=='material').reduce((s,it)=>s+it.qty*it.precio,0);document.getElementById('glam-stat-ordenes').textContent=g.filter(o=>o.estado!=='Entregado'&&o.estado!=='Cobrado').length;document.getElementById('glam-stat-comision').textContent='$'+g.filter(o=>!o.comisionPagada).reduce((s,o)=>s+getMano(o)*0.1,0).toLocaleString('es-AR',{maximumFractionDigits:0});document.getElementById('glam-stat-pagada').textContent='$'+g.filter(o=>o.comisionPagada).reduce((s,o)=>s+getMano(o)*0.1,0).toLocaleString('es-AR',{maximumFractionDigits:0});const tbody=document.getElementById('glam-ordenes-table');if(!g.length){tbody.innerHTML='<tr><td colspan="8" class="empty">No hay órdenes de GLAM.</td></tr>';}else{tbody.innerHTML=g.map(o=>{const mano=getMano(o);return`<tr><td style="color:var(--text-muted);font-size:12px;">#${o.id}</td><td style="font-weight:500;color:var(--text-dark);">${o.cliente}</td><td>${o.instrumento}</td><td>$${mano.toLocaleString('es-AR')}</td><td style="color:var(--glam);font-weight:500;">$${(mano*0.1).toLocaleString('es-AR',{maximumFractionDigits:0})}</td><td><button class="badge ${badgeClass(o.estado)}" onclick="changeEstado(${o.id})">${o.estado}</button></td><td><button class="badge ${o.comisionPagada?'badge-paid':'badge-unpaid'}" onclick="toggleComision(${o.id})">${o.comisionPagada?'Pagada':'Pendiente'}</button></td><td><button class="action-btn" onclick="openDetalle(${o.id})"><i class="ti ti-eye"></i></button></td></tr>`;}).join('');const glamCard=document.querySelector('#section-glam .card:last-child');if(glamCard&&_scrollGlamAlFinal)setTimeout(()=>{glamCard.scrollTop=glamCard.scrollHeight;_scrollGlamAlFinal=false;},100);}}
+function renderGlam(){const g=ordenes.filter(o=>o.origen==='glam');const getMano=o=>(o.items||[]).filter(it=>it.tipo==='trabajo').reduce((s,it)=>s+it.qty*it.precio,0);const getTotal=o=>(o.items||[]).filter(it=>it.tipo!=='material-glam').reduce((s,it)=>s+it.qty*it.precio,0);document.getElementById('glam-stat-ordenes').textContent=g.filter(o=>o.estado!=='Entregado'&&o.estado!=='Cobrado').length;document.getElementById('glam-stat-comision').textContent='$'+g.filter(o=>!o.comisionPagada).reduce((s,o)=>s+getMano(o)*0.1,0).toLocaleString('es-AR',{maximumFractionDigits:0});document.getElementById('glam-stat-pagada').textContent='$'+g.filter(o=>o.comisionPagada).reduce((s,o)=>s+getMano(o)*0.1,0).toLocaleString('es-AR',{maximumFractionDigits:0});const tbody=document.getElementById('glam-ordenes-table');if(!g.length){tbody.innerHTML='<tr><td colspan="8" class="empty">No hay órdenes de GLAM.</td></tr>';}else{tbody.innerHTML=g.map(o=>{const mano=getMano(o);return`<tr><td style="color:var(--text-muted);font-size:12px;">#${o.id}</td><td style="font-weight:500;color:var(--text-dark);">${o.cliente}</td><td>${o.instrumento}</td><td>$${mano.toLocaleString('es-AR')}</td><td style="color:var(--glam);font-weight:500;">$${(mano*0.1).toLocaleString('es-AR',{maximumFractionDigits:0})}</td><td><button class="badge ${badgeClass(o.estado)}" onclick="changeEstado(${o.id})">${o.estado}</button></td><td><button class="badge ${o.comisionPagada?'badge-paid':'badge-unpaid'}" onclick="toggleComision(${o.id})">${o.comisionPagada?'Pagada':'Pendiente'}</button></td><td><button class="action-btn" onclick="openDetalle(${o.id})"><i class="ti ti-eye"></i></button></td></tr>`;}).join('');const glamCard=document.querySelector('#section-glam .card:last-child');if(glamCard&&_scrollGlamAlFinal)setTimeout(()=>{glamCard.scrollTop=glamCard.scrollHeight;_scrollGlamAlFinal=false;},100);}}
 function renderStock(){
   // Actualizar selects de filtro
   const filtroSel=document.getElementById('stock-filtro-cat');
@@ -3255,11 +3319,16 @@ function editarRemitoGuardado(id){
 
 function actualizarRemitoGuardado(id){
   const r=remitos.find(r=>r.id===id);if(!r)return;
-  const comision=grOrdenes.reduce((s,oid)=>{
+  const comisionGuitarras=grOrdenes.reduce((s,oid)=>{
     const o=ordenes.find(o=>o.id===oid);if(!o||o.origen!=='glam')return s;
-    const mano=(o.items||[]).filter(it=>it.tipo!=='material'&&it.tipo!=='material-glam').reduce((a,it)=>a+it.qty*it.precio,0);
-    return s+mano*0.1;
+    const mano=(o.items||[]).filter(it=>it.tipo==='trabajo').reduce((a,it)=>a+it.qty*it.precio,0);
+    return s+Math.round(mano*0.1);
   },0);
+  const comisionPadel=grPadelReps.reduce((s,pid)=>{
+    const pr=padelReps.find(pr=>pr.id===pid);if(!pr||pr.origen!=='glam')return s;
+    return s+Math.round(pr.total*0.1);
+  },0);
+  const comision=comisionGuitarras+comisionPadel;
   const combustible=parseFloat(document.getElementById('gr-combustible').value)||0;
   const stockItems=[];
   grOrdenes.forEach(oid=>{
