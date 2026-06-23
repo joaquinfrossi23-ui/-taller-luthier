@@ -423,8 +423,8 @@ tr:hover td{background:rgba(196,149,106,0.04);}
       <div id="section-presupuestos" class="section-hidden">
         <div class="card">
           <div class="card-header"><span>Presupuestos</span></div>
-          <table><thead><tr><th>#</th><th>Cliente</th><th>Instrumento</th><th>Total</th><th>Estado</th><th></th></tr></thead>
-          <tbody id="presupuestos-table"><tr><td colspan="6" class="empty">Sin presupuestos.</td></tr></tbody></table>
+          <table><thead><tr><th>#</th><th>Origen</th><th>Cliente</th><th>Instrumento</th><th>Total</th><th>Estado</th><th>Fecha</th><th></th></tr></thead>
+          <tbody id="presupuestos-table"><tr><td colspan="8" class="empty">Sin presupuestos.</td></tr></tbody></table>
         </div>
       </div>
 
@@ -916,7 +916,12 @@ tr:hover td{background:rgba(196,149,106,0.04);}
         <div class="field"><label>Estado</label><select id="edit-p-estado"><option>Pendiente</option><option>Aprobado</option><option>Rechazado</option></select></div>
       </div>
       <div class="row2">
-        <div class="field"><label>Cliente</label><select id="edit-p-cliente"></select></div>
+        <div class="field"><label>Cliente</label>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <select id="edit-p-cliente" style="flex:1;"></select>
+            <button class="btn" onclick="nuevoClienteDesdeEditar('edit-p-cliente')" title="Nuevo cliente" style="padding:7px 10px;flex-shrink:0;"><i class="ti ti-user-plus"></i></button>
+          </div>
+        </div>
         <div class="field"><label>Teléfono</label><input type="text" id="edit-p-tel" readonly placeholder="—"></div>
       </div>
       <div class="row2">
@@ -1060,7 +1065,12 @@ tr:hover td{background:rgba(196,149,106,0.04);}
     <div class="modal-body">
       <div class="field"><label>Origen</label><select id="edit-o-origen"><option value="propio">Taller propio</option><option value="glam">GLAM</option></select></div>
       <div class="row2">
-        <div class="field"><label>Cliente</label><select id="edit-o-cliente"><option value="">Seleccioná un cliente</option></select></div>
+        <div class="field"><label>Cliente</label>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <select id="edit-o-cliente" style="flex:1;"><option value="">Seleccioná un cliente</option></select>
+            <button class="btn" onclick="nuevoClienteDesdeEditar('edit-o-cliente')" title="Nuevo cliente" style="padding:7px 10px;flex-shrink:0;"><i class="ti ti-user-plus"></i></button>
+          </div>
+        </div>
         <div class="field"><label>Instrumento</label><input type="text" id="edit-o-instrumento" placeholder="Guitarra eléctrica"></div>
       </div>
       <div class="row2">
@@ -2019,6 +2029,11 @@ function populateClienteSelect(id){
   if(id==='o-cliente')sel.onchange=()=>{const opt=sel.options[sel.selectedIndex];document.getElementById('o-tel').value=opt&&opt.dataset.tel||'';};
   if(id==='p-cliente')sel.onchange=()=>{try{const opt=sel.options[sel.selectedIndex];document.getElementById('p-tel').value=opt&&opt.dataset.tel||'';}catch(e){}};
 }
+var _nuevoClienteTargetSelect=null;
+function nuevoClienteDesdeEditar(selectId){
+  _nuevoClienteTargetSelect=selectId;
+  openClienteModal();
+}
 function populateNewStockSelect(){
   const wrap=document.getElementById('new-stock-wrap');
   if(!wrap)return;
@@ -2837,6 +2852,12 @@ function saveCliente(){
     document.getElementById('p-cliente').value=nombre;
     try{document.getElementById('p-tel').value=nuevoCliente.tel||'';}catch(e){}
   }
+  // Si fue llamado desde editar orden o presupuesto
+  if(_nuevoClienteTargetSelect){
+    populateClienteSelect(_nuevoClienteTargetSelect);
+    document.getElementById(_nuevoClienteTargetSelect).value=nombre;
+    _nuevoClienteTargetSelect=null;
+  }
 }
 function saveStock(){
   const nombre=document.getElementById('s-nombre').value;
@@ -3130,15 +3151,17 @@ function renderClientes(){
 function renderFab(){const tbody=document.getElementById('fab-table');if(!fabricaciones.length){tbody.innerHTML='<tr><td colspan="8" class="empty">No hay instrumentos.</td></tr>';}else{tbody.innerHTML=fabricaciones.map(f=>`<tr><td style="color:var(--text-muted);font-size:12px;">#${f.id}</td><td style="font-weight:500;color:var(--text-dark);">${f.tipo}</td><td>${f.modelo}</td><td><span class="${f.destino==='encargo'?'tag-encargo':'tag-stock-dest'}">${f.destino==='encargo'?'Encargo':'Stock'}</span></td><td style="color:var(--text-muted);">${f.cliente!=='—'?f.cliente:'—'}</td><td><button class="badge ${badgeClass(f.estado)}" onclick="changeFabEstado(${f.id})">${f.estado}</button></td><td style="color:var(--text-muted);font-size:12px;">${f.fecha}</td><td style="display:flex;gap:3px;"><button class="action-btn" onclick="editarFab(${f.id})" title="Editar"><i class="ti ti-edit"></i></button><button class="action-btn" onclick="deleteFab(${f.id})"><i class="ti ti-trash"></i></button></td></tr>`).join('');}document.getElementById('fab-stat-progress').textContent=fabricaciones.filter(f=>f.estado==='En proceso').length;document.getElementById('fab-stat-done').textContent=fabricaciones.filter(f=>f.estado==='Terminado').length;document.getElementById('fab-stat-delivered').textContent=fabricaciones.filter(f=>f.estado==='Entregado / Vendido').length;document.getElementById('fab-stat-total').textContent=fabricaciones.length;}
 function renderPresupuestos(){
   const tbody=document.getElementById('presupuestos-table');
-  if(!presupuestos.length){tbody.innerHTML='<tr><td colspan="6" class="empty">Sin presupuestos.</td></tr>';return;}
+  if(!presupuestos.length){tbody.innerHTML='<tr><td colspan="8" class="empty">Sin presupuestos.</td></tr>';return;}
   tbody.innerHTML=presupuestos.map(p=>{
     const total=p.items?p.items.filter(it=>it.tipo!=='material-glam').reduce((s,it)=>s+it.qty*it.precio,0):p.monto||0;
     return`<tr>
       <td style="color:var(--text-muted);font-size:12px;">#${p.id}</td>
+      <td>${p.origen==='glam'?'<span class="tag-glam">GLAM</span>':'<span class="tag-propio">Propio</span>'}</td>
       <td style="font-weight:500;color:var(--text-dark);">${p.cliente}</td>
       <td style="color:var(--text-muted);">${p.instrumento||p.desc||'—'}</td>
       <td style="font-weight:500;">$${total.toLocaleString('es-AR')}</td>
       <td><span class="badge ${p.estado==='Aprobado'?'badge-done':p.estado==='Rechazado'?'badge-pending':'badge-progress'}">${p.estado}</span></td>
+      <td style="color:var(--text-muted);font-size:12px;">${p.fecha||'—'}</td>
       <td style="display:flex;gap:3px;">
         <button class="action-btn" onclick="verPresupuesto(${p.id})" title="Ver y compartir" style="color:var(--wood-mid);"><i class="ti ti-eye"></i></button>
         ${p.estado!=='Rechazado'?`<button class="action-btn" onclick="convertirAOrden(${p.id})" title="Convertir a orden" style="color:#2A5A2A;"><i class="ti ti-arrow-right-circle"></i></button>`:''}
