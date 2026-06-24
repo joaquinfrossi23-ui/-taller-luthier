@@ -219,15 +219,19 @@ tr:hover td{background:rgba(196,149,106,0.04);}
   .divider{display:none;}
   .save-indicator{display:none;}
   .logout-btn{position:fixed;top:8px;right:8px;z-index:51;font-size:11px;padding:4px 8px;}
-  .main-content{margin-left:0;padding:0.5rem;padding-bottom:62px;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
-  .topbar{padding:6px 0.5rem;overflow:hidden;}
-  .topbar h2{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .topbar .btn{font-size:11px;padding:5px 10px;white-space:nowrap;}
+  /* Contenido con espacio para nav de abajo */
+  .main-content{margin-left:0;padding:0.5rem;padding-bottom:75px;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
+  /* Topbar contenido */
+  .topbar{padding:6px 0.5rem;max-width:100%;overflow:hidden;display:flex;align-items:center;gap:6px;}
+  .topbar h2{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;}
+  .topbar .btn{font-size:11px;padding:5px 10px;white-space:nowrap;flex-shrink:0;}
   .stats-grid-4,.stats-grid-3{display:none;}
   .filtros-bar{flex-wrap:wrap;gap:4px;}
   .filtros-bar select,.filtros-bar input{font-size:11px;height:28px;}
-  .card{overflow-x:scroll!important;-webkit-overflow-scrolling:touch;}
-  table{min-width:600px;}
+  /* Tablas con scroll horizontal */
+  .card{overflow-x:scroll;overflow-y:visible;-webkit-overflow-scrolling:touch;max-width:calc(100vw - 1rem);display:block;}
+  table{min-width:650px;width:max-content;}
+  /* Modales */
   .modal-bg{align-items:flex-end;}
   .modal,.modal-wide{width:100vw;max-width:100vw;max-height:90vh;margin:0;border-radius:12px 12px 0 0;}
   .modal-body{padding:0.75rem;max-height:70vh;overflow-y:auto;-webkit-overflow-scrolling:touch;}
@@ -241,7 +245,7 @@ tr:hover td{background:rgba(196,149,106,0.04);}
   .nav-item{padding:3px 6px;min-width:36px;}
   .nav-item i{font-size:14px;}
   .nav-label{display:none;}
-  .main-content{padding-bottom:46px;margin-left:0;}
+  .main-content{padding-bottom:50px;margin-left:0;}
   .topbar{padding:2px 0.5rem;}
   .topbar h2{font-size:11px;}
   .topbar .btn{font-size:10px;padding:3px 6px;}
