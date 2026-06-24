@@ -470,11 +470,12 @@ tr:hover td{background:rgba(196,149,106,0.04);}
       <div id="section-stock" class="section-hidden">
         <!-- Filtros de stock -->
         <div class="filtros-bar" style="margin-bottom:1rem;">
-          <select id="stock-filtro-cat" style="flex:1;font-size:12px;font-family:'Inter',sans-serif;border:0.5px solid var(--border);border-radius:6px;background:var(--parchment);color:var(--text-dark);padding:5px 8px;height:30px;">
-            <option value="">Todas las categorías</option>
+          <input type="text" id="stock-buscar" placeholder="🔍 Buscar..." oninput="renderStock()" style="flex:1.5;min-width:120px;font-size:12px;font-family:'Inter',sans-serif;border:0.5px solid var(--border);border-radius:6px;background:var(--parchment);color:var(--text-dark);padding:5px 8px;height:30px;">
+          <select id="stock-filtro-cat" onchange="renderStock()" style="flex:1;min-width:80px;font-size:12px;font-family:'Inter',sans-serif;border:0.5px solid var(--border);border-radius:6px;background:var(--parchment);color:var(--text-dark);padding:5px 8px;height:30px;">
+            <option value="">Categorías</option>
           </select>
-          <select id="stock-filtro-marca" style="flex:1;font-size:12px;font-family:'Inter',sans-serif;border:0.5px solid var(--border);border-radius:6px;background:var(--parchment);color:var(--text-dark);padding:5px 8px;height:30px;">
-            <option value="">Todas las marcas</option>
+          <select id="stock-filtro-marca" onchange="renderStock()" style="flex:1;min-width:80px;font-size:12px;font-family:'Inter',sans-serif;border:0.5px solid var(--border);border-radius:6px;background:var(--parchment);color:var(--text-dark);padding:5px 8px;height:30px;">
+            <option value="">Marcas</option>
           </select>
           <button id="btn-vista-precios" onclick="toggleVistaPrecios()" class="btn" style="white-space:nowrap;"><i class="ti ti-tag"></i> Ver precios</button>
         </div>
@@ -3142,19 +3143,26 @@ function renderStock(){
   const filtroMarca=document.getElementById('stock-filtro-marca');
   if(filtroSel){
     const catActual=filtroSel.value;
-    filtroSel.innerHTML='<option value="">Todas las categorías</option>'+categorias.map(c=>`<option value="${c}">${c}</option>`).join('');
+    filtroSel.innerHTML='<option value="">Categorías</option>'+categorias.map(c=>`<option value="${c}">${c}</option>`).join('');
     if(catActual)filtroSel.value=catActual;
   }
   if(filtroMarca){
     const marcaActual=filtroMarca.value;
-    filtroMarca.innerHTML='<option value="">Todas las marcas</option>'+marcas.map(m=>`<option value="${m}">${m}</option>`).join('');
+    filtroMarca.innerHTML='<option value="">Marcas</option>'+marcas.map(m=>`<option value="${m}">${m}</option>`).join('');
     if(marcaActual)filtroMarca.value=marcaActual;
   }
   const catFiltro=filtroSel?filtroSel.value:'';
   const marcaFiltro=filtroMarca?filtroMarca.value:'';
-  const stockFiltrado=stock.map((s,i)=>({...s,_idx:i})).filter(s=>
-    (!catFiltro||s.cat===catFiltro)&&(!marcaFiltro||s.marca===marcaFiltro)
-  );
+  const buscar=(document.getElementById('stock-buscar')?document.getElementById('stock-buscar').value||'':'').toLowerCase().trim();
+  const stockFiltrado=stock.map((s,i)=>({...s,_idx:i})).filter(s=>{
+    if(catFiltro&&s.cat!==catFiltro)return false;
+    if(marcaFiltro&&s.marca!==marcaFiltro)return false;
+    if(buscar){
+      const txt=`${s.cat||''} ${s.marca||''} ${s.nombre||''} ${s.modelo||''}`.toLowerCase();
+      if(!txt.includes(buscar))return false;
+    }
+    return true;
+  });
 
   const tbody=document.getElementById('stock-table');
   if(!stockFiltrado.length){tbody.innerHTML='<tr><td colspan="10" class="empty">Sin ítems.</td></tr>';renderVistaPrecios(stockFiltrado);return;}
@@ -3501,6 +3509,8 @@ const stockFiltrocat=document.getElementById('stock-filtro-cat');
 if(stockFiltrocat)stockFiltrocat.addEventListener('change',renderStock);
 const stockFiltromarca=document.getElementById('stock-filtro-marca');
 if(stockFiltromarca)stockFiltromarca.addEventListener('change',renderStock);
+const stockBuscar=document.getElementById('stock-buscar');
+if(stockBuscar)stockBuscar.addEventListener('input',renderStock);
 const padelBuscar=document.getElementById('padel-clientes-buscar');
 if(padelBuscar)padelBuscar.addEventListener('input',renderPadelClientes);
 
