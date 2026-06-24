@@ -201,124 +201,56 @@ tr:hover td{background:rgba(196,149,106,0.04);}
 .lightbox.open{display:flex;}
 .lightbox img{max-width:90vw;max-height:85vh;border-radius:8px;}
 .lightbox-close{position:absolute;top:20px;right:24px;background:none;border:none;color:#fff;font-size:24px;cursor:pointer;}
-/* ===== CELULAR (vertical y horizontal) ===== */
-@media (max-width:900px){
-
-  /* --- Layout --- */
+/* CELULAR VERTICAL */
+@media (max-width:768px){
   .app{flex-direction:column;}
-  .main-content{margin-left:0;}
-
-  /* --- Sidebar abajo como app --- */
   .sidebar{
-    position:fixed;bottom:0;left:0;right:0;z-index:100;
-    width:100%;height:56px;
-    flex-direction:row;padding:0;
-    overflow-x:auto;overflow-y:hidden;
-    border-right:none;border-top:1px solid var(--border-light);
-    background:var(--wood-dark);
+    width:100%;height:auto;max-height:56px;
+    flex-direction:row;position:fixed;bottom:0;left:0;right:0;z-index:50;
+    padding:0;overflow-x:auto;overflow-y:hidden;
+    border-right:none;border-top:0.5px solid var(--border-light);
     -webkit-overflow-scrolling:touch;
-    scrollbar-width:none;
   }
-  .sidebar::-webkit-scrollbar{display:none;}
-  .sidebar-logo{display:none;}
-  .sidebar-footer{display:none;}
+  .sidebar nav{display:flex;flex-direction:row;padding:0;gap:0;width:max-content;}
+  .nav-item{flex:0 0 auto;flex-direction:column;padding:6px 10px;min-width:52px;font-size:9px;gap:1px;}
+  .nav-item i{font-size:18px;}
+  .nav-label{font-size:8px;display:block;white-space:nowrap;}
   .nav-section-label{display:none;}
   .divider{display:none;}
   .save-indicator{display:none;}
-  .logout-btn{display:none;}
-  .sidebar nav{
-    display:flex;flex-direction:row;
-    padding:0;gap:0;
-    width:max-content;min-width:100%;
-  }
-  .nav-item{
-    flex:0 0 auto;
-    flex-direction:column;
-    padding:6px 12px 4px;
-    min-width:60px;
-    font-size:9px;
-    gap:2px;
-    border-radius:0;
-    border-left:none;
-    border-bottom:2px solid transparent;
-  }
-  .nav-item i{font-size:20px;}
-  .nav-label{display:block;font-size:8px;white-space:nowrap;line-height:1;}
-  .nav-item.active{border-bottom:2px solid var(--ocre-light);background:rgba(255,255,255,0.08);}
-
-  /* --- Contenido principal --- */
-  .main-content{
-    padding:0.5rem;
-    padding-bottom:72px;
-    overflow-y:auto;overflow-x:hidden;
-    -webkit-overflow-scrolling:touch;
-  }
-
-  /* --- Topbar --- */
-  .topbar{
-    padding:6px 0.5rem;
-    display:flex;align-items:center;gap:6px;
-    overflow:hidden;
-  }
-  .topbar h2{
-    font-size:14px;
-    flex:1;min-width:0;
-    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-  }
-  .topbar .btn{
-    font-size:11px;padding:5px 10px;
-    white-space:nowrap;flex-shrink:0;
-  }
-
-  /* --- Stats ocultos --- */
+  .logout-btn{position:fixed;top:8px;right:8px;z-index:51;font-size:11px;padding:4px 8px;}
+  /* Contenido con espacio para nav de abajo */
+  .main-content{margin-left:0;padding:0.5rem;padding-bottom:75px;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
+  /* Topbar contenido */
+  .topbar{padding:6px 0.5rem;max-width:100%;overflow:hidden;display:flex;align-items:center;gap:6px;}
+  .topbar h2{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;}
+  .topbar .btn{font-size:11px;padding:5px 10px;white-space:nowrap;flex-shrink:0;}
   .stats-grid-4,.stats-grid-3{display:none;}
-
-  /* --- Filtros --- */
   .filtros-bar{flex-wrap:wrap;gap:4px;}
   .filtros-bar select,.filtros-bar input{font-size:11px;height:28px;}
-
-  /* --- Tablas con scroll horizontal --- */
-  .card{
-    overflow-x:auto;overflow-y:visible;
-    -webkit-overflow-scrolling:touch;
-    max-width:100%;
-    scrollbar-width:thin;
-  }
+  /* Tablas con scroll horizontal */
+  .card{overflow-x:scroll;overflow-y:visible;-webkit-overflow-scrolling:touch;max-width:calc(100vw - 1rem);display:block;}
   table{min-width:650px;width:max-content;}
-
-  /* --- Modales desde abajo --- */
+  /* Modales */
   .modal-bg{align-items:flex-end;}
-  .modal,.modal-wide{
-    width:100vw;max-width:100vw;
-    max-height:88vh;
-    margin:0;border-radius:16px 16px 0 0;
-  }
-  .modal-body{
-    padding:0.75rem;
-    max-height:68vh;
-    overflow-y:auto;
-    -webkit-overflow-scrolling:touch;
-  }
-  .modal-header{padding:1rem 1rem 0.5rem;}
-  .modal-footer{flex-wrap:wrap;gap:6px;padding:0.75rem;}
-  .modal-footer .btn{font-size:12px;padding:8px 12px;flex:1;min-width:120px;}
-
-  /* --- Forms --- */
+  .modal,.modal-wide{width:100vw;max-width:100vw;max-height:90vh;margin:0;border-radius:12px 12px 0 0;}
+  .modal-body{padding:0.75rem;max-height:70vh;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  .modal-footer{flex-wrap:wrap;gap:6px;}
+  .modal-footer .btn{font-size:12px;padding:8px 12px;}
   .row2,.row3{grid-template-columns:1fr;}
-  .item-add-grid{grid-template-columns:1fr auto auto;}
 }
-
-/* --- HORIZONTAL solamente --- */
-@media (max-width:900px) and (orientation:landscape){
-  .sidebar{height:44px;}
-  .nav-item{padding:4px 10px 2px;min-width:48px;}
-  .nav-item i{font-size:16px;}
+/* CELULAR HORIZONTAL */
+@media (max-width:768px) and (orientation:landscape){
+  .sidebar{max-height:40px;}
+  .nav-item{padding:3px 6px;min-width:36px;}
+  .nav-item i{font-size:14px;}
   .nav-label{display:none;}
-  .main-content{padding-bottom:52px;}
-  .topbar h2{font-size:12px;}
-  .topbar .btn{font-size:10px;padding:4px 8px;}
-  .modal,.modal-wide{max-height:94vh;}
-  .modal-body{max-height:76vh;}
+  .main-content{padding-bottom:50px;margin-left:0;}
+  .topbar{padding:2px 0.5rem;}
+  .topbar h2{font-size:11px;}
+  .topbar .btn{font-size:10px;padding:3px 6px;}
+  .modal,.modal-wide{max-height:95vh;}
+  .modal-body{max-height:80vh;}
 }
 /* TABLETS */
 @media (min-width:769px) and (max-width:1024px){
@@ -385,20 +317,20 @@ tr:hover td{background:rgba(196,149,106,0.04);}
       <div class="logo-sub">Luthier · Sistema de taller</div>
     </div>
     <div class="nav-section-label">Taller propio</div>
-    <div class="nav-item active" onclick="showSection('ordenes')" id="nav-ordenes"><i class="ti ti-clipboard-list"></i><span class="nav-label">Órdenes</span></div>
-    <div class="nav-item" onclick="showSection('fabricacion')" id="nav-fabricacion"><i class="ti ti-tool"></i><span class="nav-label">Fabricación</span></div>
-    <div class="nav-item" onclick="showSection('clientes')" id="nav-clientes"><i class="ti ti-users"></i><span class="nav-label">Clientes</span></div>
+    <div class="nav-item active" onclick="showSection('ordenes')" id="nav-ordenes"><i class="ti ti-clipboard-list"></i> Órdenes de trabajo</div>
+    <div class="nav-item" onclick="showSection('fabricacion')" id="nav-fabricacion"><i class="ti ti-tool"></i> Fabricación</div>
+    <div class="nav-item" onclick="showSection('clientes')" id="nav-clientes"><i class="ti ti-users"></i> Clientes</div>
     <div class="nav-item" onclick="showSection('stock')" id="nav-stock"><i class="ti ti-package"></i><span class="nav-label">Stock</span></div>
     <div class="nav-item" onclick="showSection('trabajos')" id="nav-trabajos"><i class="ti ti-tools"></i><span class="nav-label">Trabajos</span></div>
-    <div class="nav-item" onclick="showSection('presupuestos')" id="nav-presupuestos"><i class="ti ti-file-invoice"></i><span class="nav-label">Presupuestos</span></div>
+    <div class="nav-item" onclick="showSection('presupuestos')" id="nav-presupuestos"><i class="ti ti-file-invoice"></i> Presupuestos</div>
     <div class="divider"></div>
     <div class="nav-section-label">GLAM</div>
-    <div class="nav-item glam-nav" onclick="showSection('glam')" id="nav-glam"><i class="ti ti-building-store"></i><span class="nav-label">Panel GLAM</span></div>
-    <div class="nav-item glam-nav" onclick="showSection('glam-remitos')" id="nav-glam-remitos"><i class="ti ti-truck"></i><span class="nav-label">Remitos</span></div>
+    <div class="nav-item glam-nav" onclick="showSection('glam')" id="nav-glam"><i class="ti ti-building-store"></i> Panel GLAM</div>
+    <div class="nav-item glam-nav" onclick="showSection('glam-remitos')" id="nav-glam-remitos"><i class="ti ti-truck"></i> Remitos</div>
     <div class="divider"></div>
     <div class="nav-section-label" style="color:#0EA5E9;">Padel</div>
-    <div class="nav-item" onclick="showSection('padel')" id="nav-padel" style="--nav-active:#0EA5E9;"><i class="ti ti-ball-tennis"></i><span class="nav-label">Reparaciones</span></div>
-    <div class="nav-item" onclick="showSection('padel-clientes')" id="nav-padel-clientes" style="--nav-active:#0EA5E9;"><i class="ti ti-users"></i><span class="nav-label">Clientes padel</span></div>
+    <div class="nav-item" onclick="showSection('padel')" id="nav-padel" style="--nav-active:#0EA5E9;"><i class="ti ti-racket"></i> Reparaciones</div>
+    <div class="nav-item" onclick="showSection('padel-clientes')" id="nav-padel-clientes" style="--nav-active:#0EA5E9;"><i class="ti ti-users"></i> Clientes padel</div>
     <div class="divider"></div>
     <div class="sidebar-footer">
       <p>© Joaquin Rossi Luthier</p>
