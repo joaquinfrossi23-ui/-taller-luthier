@@ -658,38 +658,15 @@ tr:hover td{background:rgba(196,149,106,0.04);}
         </div>
         <div class="field"><label>Teléfono</label><input type="text" id="o-tel" readonly placeholder="—"></div>
       </div>
-      <div class="row2">
-        <div class="field"><label>Instrumento</label><input type="text" id="o-instrumento" placeholder="Guitarra eléctrica"></div>
-        <div class="field"><label>Marca / Modelo</label><input type="text" id="o-marca" placeholder="Fender Strat"></div>
-      </div>
-      <div class="field"><label>Estado</label><select id="o-estado" style="max-width:180px;"><option value="Pendiente">Pendiente</option><option value="En proceso">En proceso</option><option value="Listo">Listo</option><option value="Entregado">Entregado</option><option value="Cobrado">Cobrado</option></select></div>
+      <!-- INSTRUMENTOS -->
       <div class="items-section">
-        <h4>Trabajos y materiales</h4>
-        <div id="new-trabajo-wrap" style="display:block;margin-bottom:6px;">
-          <select id="new-trabajo-sel" onchange="seleccionarTrabajo()" style="width:100%;font-size:12px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--cream);color:var(--text-dark);padding:7px 10px;">
-            <option value="">— Elegir trabajo de la lista —</option>
-          </select>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <h4 style="margin:0;">Instrumentos</h4>
+          <button class="btn btn-primary" onclick="addInstrumentoOrden()" style="padding:5px 12px;font-size:12px;"><i class="ti ti-plus"></i> Agregar instrumento</button>
         </div>
-        <div class="item-add-grid">
-          <select id="new-tipo" onchange="toggleStockSelect('new')"><option value="trabajo">Trabajo</option><option value="material">Material stock</option><option value="material-libre">Material libre</option><option value="material-glam">Material GLAM</option></select>
-          <div id="new-desc-wrap"><input type="text" id="new-desc" placeholder="Descripción..."></div>
-          <div id="new-stock-wrap" style="display:none;"><select id="new-stock-sel"></select></div>
-          <input type="number" id="new-qty" placeholder="Cant." min="1" value="1" style="width:64px;">
-          <input type="number" id="new-precio" placeholder="$" min="0" style="width:80px;">
-          <button class="btn btn-primary" onclick="addItemToNew()" style="padding:7px 10px;"><i class="ti ti-plus"></i></button>
-        </div>
-        <div id="new-items-list" class="items-list"></div>
-        <div class="total-bar" id="new-total-bar" style="display:none;"><span class="total-bar-label">Total orden</span><span class="total-bar-amount" id="new-total">$0</span></div>
+        <div id="new-instrumentos-list"></div>
       </div>
       <div class="field"><label>Observaciones internas</label><textarea id="o-obs" placeholder="Notas técnicas..."></textarea></div>
-      <div class="field">
-        <label>Fotos (máx. 2)</label>
-        <div id="new-fotos-preview" class="fotos-preview"></div>
-        <div class="foto-upload-area" id="new-upload-area">
-          <input type="file" accept="image/*" multiple id="new-foto-input" onchange="handleNewFotos(this)">
-          <i class="ti ti-camera"></i><p>Subir fotos del instrumento</p>
-        </div>
-      </div>
     </div>
     <div class="modal-footer"><button class="btn" onclick="closeModal('modal-orden')">Cancelar</button><button class="btn btn-primary" onclick="saveOrden()">Guardar orden</button></div>
   </div>
@@ -818,33 +795,13 @@ tr:hover td{background:rgba(196,149,106,0.04);}
         </div>
         <div class="field"><label>Teléfono</label><input type="text" id="p-tel" readonly placeholder="—"></div>
       </div>
-      <div class="row2">
-        <div class="field"><label>Instrumento</label><input type="text" id="p-instrumento" placeholder="Guitarra eléctrica"></div>
-        <div class="field"><label>Marca / Modelo</label><input type="text" id="p-marca" placeholder="Fender Strat"></div>
-      </div>
+      <!-- INSTRUMENTOS PRESUPUESTO -->
       <div class="items-section">
-        <h4>Trabajos y materiales</h4>
-        <div id="pres-trabajo-wrap" style="margin-bottom:6px;">
-          <select id="pres-trabajo-sel" onchange="seleccionarTrabajoPresupuesto()" style="width:100%;font-size:12px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--cream);color:var(--text-dark);padding:7px 10px;">
-            <option value="">— Elegir trabajo de la lista —</option>
-          </select>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <h4 style="margin:0;">Instrumentos</h4>
+          <button class="btn btn-primary" onclick="addInstrumentoPresupuesto()" style="padding:5px 12px;font-size:12px;"><i class="ti ti-plus"></i> Agregar instrumento</button>
         </div>
-        <div class="item-add-grid">
-          <select id="pres-tipo" onchange="toggleStockSelect('pres')"><option value="trabajo">Trabajo</option><option value="material">Material stock</option><option value="material-libre">Material libre</option><option value="material-glam">Material GLAM</option></select>
-          <div id="pres-desc-wrap"><input type="text" id="pres-desc" placeholder="Descripción..."></div>
-          <div id="pres-stock-wrap" style="display:none;">
-            <select id="pres-stock-marca-filtro" onchange="filtrarStockSelect('pres')" style="width:100%;font-size:12px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--cream);color:var(--text-dark);padding:6px 8px;margin-bottom:4px;">
-              <option value="">Todas las marcas</option>
-            </select>
-            <input type="text" id="pres-stock-buscar" placeholder="Buscar producto..." oninput="filtrarStockSelect('pres')" style="width:100%;font-size:12px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--cream);color:var(--text-dark);padding:6px 8px;margin-bottom:4px;box-sizing:border-box;">
-            <select id="pres-stock-sel" style="width:100%;"></select>
-          </div>
-          <input type="number" id="pres-qty" placeholder="Cant." min="1" value="1" style="width:64px;">
-          <input type="number" id="pres-precio" placeholder="$" min="0" style="width:80px;">
-          <button class="btn btn-primary" onclick="addItemToPresupuesto()" style="padding:7px 10px;"><i class="ti ti-plus"></i></button>
-        </div>
-        <div id="pres-items-list" class="items-list"></div>
-        <div class="total-bar" id="pres-total-bar" style="display:none;"><span class="total-bar-label">Total presupuesto</span><span class="total-bar-amount" id="pres-total">$0</span></div>
+        <div id="new-pres-instrumentos-list"></div>
       </div>
       <div class="field"><label>Observaciones</label><textarea id="p-obs" placeholder="Notas para el cliente..."></textarea></div>
       <div class="field"><label>Fotos (registro interno)</label><input type="file" id="p-fotos" accept="image/*" multiple onchange="handlePresFotos(event)"></div>
@@ -1440,20 +1397,206 @@ function calcPrecioVenta(){
     document.getElementById('s-venta-calc').textContent='$—';
   }
 }
+// MULTI-INSTRUMENTO
+let newInstrumentos=[]; // [{instrumento, marca, estado, items, fotos, obs}]
+
+function buildInstrumentoHTML(idx){
+  const inst=newInstrumentos[idx];
+  const itemsHTML=inst.items.length?inst.items.map((it,i)=>`
+    <div class="item-row">
+      ${itemTag(it.tipo)}
+      <span class="item-row-desc">${it.desc}${it.qty>1?` × ${it.qty}`:''}</span>
+      <span class="item-row-price">${it.tipo==='material-glam'?'—':'$'+(it.qty*it.precio).toLocaleString('es-AR')}</span>
+      <button class="action-btn" onclick="removeItemInstrumento(${idx},${i})"><i class="ti ti-trash"></i></button>
+    </div>`).join(''):'<p style="font-size:12px;color:var(--text-muted);font-style:italic;padding:4px 0;">Sin ítems.</p>';
+  const total=inst.items.filter(it=>it.tipo!=='material-glam').reduce((s,it)=>s+it.qty*it.precio,0);
+  return`<div style="background:var(--cream);border:0.5px solid var(--border-light);border-radius:10px;padding:12px;margin-bottom:10px;" id="inst-block-${idx}">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <strong style="font-size:13px;color:var(--text-dark);">Instrumento ${idx+1}</strong>
+      <button class="action-btn" onclick="removeInstrumentoOrden(${idx})" title="Quitar"><i class="ti ti-trash"></i></button>
+    </div>
+    <div class="row2" style="margin-bottom:6px;">
+      <div class="field" style="margin:0;"><label>Instrumento</label><input type="text" id="inst-nombre-${idx}" value="${inst.instrumento}" oninput="newInstrumentos[${idx}].instrumento=this.value" placeholder="Guitarra eléctrica"></div>
+      <div class="field" style="margin:0;"><label>Marca / Modelo</label><input type="text" id="inst-marca-${idx}" value="${inst.marca}" oninput="newInstrumentos[${idx}].marca=this.value" placeholder="Fender Strat"></div>
+    </div>
+    <div class="field" style="margin-bottom:6px;">
+      <label>Estado</label>
+      <select id="inst-estado-${idx}" onchange="newInstrumentos[${idx}].estado=this.value" style="max-width:180px;">
+        <option value="Pendiente"${inst.estado==='Pendiente'?' selected':''}>Pendiente</option>
+        <option value="En proceso"${inst.estado==='En proceso'?' selected':''}>En proceso</option>
+        <option value="Listo"${inst.estado==='Listo'?' selected':''}>Listo</option>
+        <option value="Entregado"${inst.estado==='Entregado'?' selected':''}>Entregado</option>
+        <option value="Cobrado"${inst.estado==='Cobrado'?' selected':''}>Cobrado</option>
+      </select>
+    </div>
+    <div class="items-section" style="background:transparent;padding:0;">
+      <div style="margin-bottom:6px;">
+        <select onchange="seleccionarTrabajoInstrumento(${idx},this)" style="width:100%;font-size:12px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--parchment);color:var(--text-dark);padding:7px 10px;">
+          <option value="">— Elegir trabajo de la lista —</option>
+          ${trabajos.map(t=>`<option value="${t.id}">${t.desc} — $${t.precio.toLocaleString('es-AR')}</option>`).join('')}
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:auto 1fr auto auto auto;gap:4px;align-items:center;margin-bottom:6px;">
+        <select id="inst-tipo-${idx}" style="font-size:11px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--parchment);color:var(--text-dark);padding:5px;" onchange="toggleInstStock(${idx})">
+          <option value="trabajo">Trabajo</option><option value="material">Material stock</option><option value="material-libre">Material libre</option><option value="material-glam">Material GLAM</option>
+        </select>
+        <div id="inst-desc-wrap-${idx}"><input type="text" id="inst-desc-${idx}" placeholder="Descripción..." style="width:100%;font-size:12px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--parchment);color:var(--text-dark);padding:6px 8px;"></div>
+        <div id="inst-stock-wrap-${idx}" style="display:none;">
+          <select id="inst-stock-marca-${idx}" onchange="filtrarInstStock(${idx})" style="width:100%;font-size:11px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--parchment);color:var(--text-dark);padding:5px;margin-bottom:3px;">
+            <option value="">Todas las marcas</option>
+            ${marcas.map(m=>`<option value="${m}">${m}</option>`).join('')}
+          </select>
+          <input type="text" id="inst-stock-buscar-${idx}" placeholder="Buscar..." oninput="filtrarInstStock(${idx})" style="width:100%;font-size:11px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--parchment);color:var(--text-dark);padding:5px;margin-bottom:3px;box-sizing:border-box;">
+          <select id="inst-stock-sel-${idx}" style="width:100%;font-size:11px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--parchment);color:var(--text-dark);padding:5px;"></select>
+        </div>
+        <input type="number" id="inst-qty-${idx}" value="1" min="1" style="width:50px;font-size:12px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--parchment);color:var(--text-dark);padding:6px 4px;text-align:center;">
+        <input type="number" id="inst-precio-${idx}" placeholder="$" min="0" style="width:80px;font-size:12px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--parchment);color:var(--text-dark);padding:6px 8px;">
+        <button class="btn btn-primary" onclick="addItemInstrumento(${idx})" style="padding:6px 10px;"><i class="ti ti-plus"></i></button>
+      </div>
+      <div>${itemsHTML}</div>
+      ${total>0?`<div class="total-bar" style="margin-top:6px;"><span class="total-bar-label">Subtotal</span><span class="total-bar-amount">$${total.toLocaleString('es-AR')}</span></div>`:''}
+    </div>
+  </div>`;
+}
+
+function renderInstrumentosOrden(){
+  const el=document.getElementById('new-instrumentos-list');if(!el)return;
+  if(!newInstrumentos.length){
+    el.innerHTML='<p style="font-size:12px;color:var(--text-muted);font-style:italic;padding:8px 0;">Agregá al menos un instrumento.</p>';
+    return;
+  }
+  el.innerHTML=newInstrumentos.map((_,i)=>buildInstrumentoHTML(i)).join('');
+  // Total general
+  const totalGeneral=newInstrumentos.reduce((s,inst)=>s+inst.items.filter(it=>it.tipo!=='material-glam').reduce((a,it)=>a+it.qty*it.precio,0),0);
+  if(newInstrumentos.length>1&&totalGeneral>0){
+    el.innerHTML+=`<div class="total-bar"><span class="total-bar-label">Total general</span><span class="total-bar-amount">$${totalGeneral.toLocaleString('es-AR')}</span></div>`;
+  }
+}
+
+function addInstrumentoOrden(){
+  newInstrumentos.push({instrumento:'',marca:'',estado:'Pendiente',items:[],fotos:[],obs:''});
+  renderInstrumentosOrden();
+}
+
+function removeInstrumentoOrden(idx){
+  newInstrumentos.splice(idx,1);
+  renderInstrumentosOrden();
+}
+
+function seleccionarTrabajoInstrumento(idx,sel){
+  const id=parseInt(sel.value);if(isNaN(id))return;
+  const t=trabajos.find(t=>t.id===id);if(!t)return;
+  document.getElementById(`inst-desc-${idx}`).value=t.desc;
+  document.getElementById(`inst-precio-${idx}`).value=t.precio;
+  sel.value='';
+}
+
+function toggleInstStock(idx){
+  const tipo=document.getElementById(`inst-tipo-${idx}`).value;
+  const esMaterial=tipo==='material';
+  const descWrap=document.getElementById(`inst-desc-wrap-${idx}`);
+  const stockWrap=document.getElementById(`inst-stock-wrap-${idx}`);
+  if(descWrap)descWrap.style.display=esMaterial?'none':'block';
+  if(stockWrap){
+    stockWrap.style.display=esMaterial?'block':'none';
+    if(esMaterial)filtrarInstStock(idx);
+  }
+  const precioEl=document.getElementById(`inst-precio-${idx}`);
+  if(precioEl)precioEl.value='';
+}
+function filtrarInstStock(idx){
+  const buscar=(document.getElementById(`inst-stock-buscar-${idx}`)?.value||'').toLowerCase();
+  const marcaFiltro=document.getElementById(`inst-stock-marca-${idx}`)?.value||'';
+  const sel=document.getElementById(`inst-stock-sel-${idx}`);
+  if(!sel)return;
+  const opciones=[];
+  stock.forEach((s,i)=>{
+    if(marcaFiltro&&s.marca!==marcaFiltro)return;
+    const infoBase=`${s.cat||''}${s.marca?' · '+s.marca:''}${s.nombre?' · '+s.nombre:''}${s.modelo?' · '+s.modelo:''}`;
+    if(s.variantes&&s.variantes.length){
+      s.variantes.forEach((v,vi)=>{
+        const txt=`${infoBase} · ${v.nombre} | Stock: ${v.qty} | $${(s.venta||s.precio||0).toLocaleString('es-AR')}`;
+        if(!buscar||txt.toLowerCase().includes(buscar))opciones.push(`<option value="${i}_${vi}">${txt}</option>`);
+      });
+    } else {
+      const txt=`${infoBase} | Stock: ${s.qty} | $${(s.venta||s.precio||0).toLocaleString('es-AR')}`;
+      if(!buscar||txt.toLowerCase().includes(buscar))opciones.push(`<option value="${i}">${txt}</option>`);
+    }
+  });
+  sel.innerHTML='<option value="">— Seleccioná —</option>'+opciones.join('');
+  sel.onchange=()=>{
+    const val=sel.value;if(!val)return;
+    if(val.includes('_')){const[si]=val.split('_').map(Number);if(stock[si])document.getElementById(`inst-precio-${idx}`).value=stock[si].venta||stock[si].precio||0;}
+    else{const si=parseInt(val);if(!isNaN(si)&&stock[si])document.getElementById(`inst-precio-${idx}`).value=stock[si].venta||stock[si].precio||0;}
+  };
+}
+function addItemInstrumento(idx){
+  const tipo=document.getElementById(`inst-tipo-${idx}`).value;
+  const qty=parseInt(document.getElementById(`inst-qty-${idx}`).value)||1;
+  const precio=tipo==='material-glam'?0:parseFloat(document.getElementById(`inst-precio-${idx}`).value)||0;
+  let desc='',stockIdx=null,stockVarianteIdx=null;
+  if(tipo==='material'){
+    const val=document.getElementById(`inst-stock-sel-${idx}`)?.value;
+    if(!val){alert('Seleccioná un producto del stock.');return;}
+    if(val.includes('_')){const[si,vi]=val.split('_').map(Number);desc=getStockDescCompleta(si,vi);stockIdx=si;stockVarianteIdx=vi;}
+    else{const si=parseInt(val);desc=getStockDescCompleta(si,null);stockIdx=si;}
+  } else {
+    desc=document.getElementById(`inst-desc-${idx}`)?.value.trim();
+    if(!desc&&tipo!=='material-glam'){alert('Ingresá la descripción.');return;}
+  }
+  newInstrumentos[idx].items.push({tipo,desc:desc||'Material GLAM',qty,precio,stockIdx,stockVarianteIdx});
+  renderInstrumentosOrden();
+}
+
+function removeItemInstrumento(instIdx,itemIdx){
+  newInstrumentos[instIdx].items.splice(itemIdx,1);
+  renderInstrumentosOrden();
+}
+
 function openOrdenModal(){
+  newInstrumentos=[{instrumento:'',marca:'',estado:'Pendiente',items:[],fotos:[],obs:''}];
   newFotosData=[];newItems=[];
   populateClienteSelect('o-cliente');
-  populateNewStockSelect();
-  renderNewItems();renderNewFotosPreview();
   document.querySelectorAll('#modal-orden input:not([type=file]),#modal-orden textarea').forEach(el=>el.value='');
-  // Poblar selector de trabajos
-  const trabajoSel=document.getElementById('new-trabajo-sel');
-  if(trabajoSel)trabajoSel.innerHTML='<option value="">— Elegir trabajo de la lista —</option>'+trabajos.map(t=>`<option value="${t.id}">${t.desc} — $${t.precio.toLocaleString('es-AR')}</option>`).join('');
+  document.getElementById('o-origen').value='propio';
+  renderInstrumentosOrden();
   document.getElementById('modal-orden').classList.add('open');
 }
-function openGlamOrden(){openOrdenModal();document.getElementById('o-origen').value='glam';}
+
+function saveOrden(){
+  const cliente=document.getElementById('o-cliente').value;
+  if(!cliente){alert('Seleccioná un cliente.');return;}
+  const instrumentosValidos=newInstrumentos.filter(inst=>inst.instrumento.trim()||inst.items.length);
+  if(!instrumentosValidos.length){alert('Agregá al menos un instrumento.');return;}
+  // Si es un solo instrumento, guardar como antes (compatibilidad)
+  if(instrumentosValidos.length===1){
+    const inst=instrumentosValidos[0];
+    inst.items.forEach(it=>{
+      if(it.stockIdx!=null){
+        if(it.stockVarianteIdx!=null){if(stock[it.stockIdx]&&stock[it.stockIdx].variantes[it.stockVarianteIdx])stock[it.stockIdx].variantes[it.stockVarianteIdx].qty-=it.qty;}
+        else{if(stock[it.stockIdx])stock[it.stockIdx].qty-=it.qty;}
+      }
+    });
+    ordenes.push({id:ordenCounter++,origen:document.getElementById('o-origen').value,cliente,instrumento:inst.instrumento||'—',marca:inst.marca,estado:inst.estado,obs:document.getElementById('o-obs').value,fotos:[],items:inst.items.map(it=>({...it})),cobros:[],fecha:new Date().toLocaleDateString('es-AR')});
+  } else {
+    // Múltiples instrumentos: una orden por instrumento, agrupadas por groupId
+    const groupId=Date.now();
+    instrumentosValidos.forEach(inst=>{
+      inst.items.forEach(it=>{
+        if(it.stockIdx!=null){
+          if(it.stockVarianteIdx!=null){if(stock[it.stockIdx]&&stock[it.stockIdx].variantes[it.stockVarianteIdx])stock[it.stockIdx].variantes[it.stockVarianteIdx].qty-=it.qty;}
+          else{if(stock[it.stockIdx])stock[it.stockIdx].qty-=it.qty;}
+        }
+      });
+      ordenes.push({id:ordenCounter++,origen:document.getElementById('o-origen').value,cliente,instrumento:inst.instrumento||'—',marca:inst.marca,estado:inst.estado,obs:document.getElementById('o-obs').value,fotos:[],items:inst.items.map(it=>({...it})),cobros:[],fecha:new Date().toLocaleDateString('es-AR'),groupId});
+    });
+  }
+  newInstrumentos=[];newFotosData=[];newItems=[];
+  renderAll();closeModal('modal-orden');scheduleSave();
+}
 function openFabModal(){populateClienteSelect('f-cliente');document.getElementById('modal-fab').classList.add('open');}
 function openClienteModal(){document.getElementById('modal-cliente').classList.add('open');}
+function openGlamOrden(){openOrdenModal();setTimeout(()=>document.getElementById('o-origen').value='glam',50);}
 // MÓDULO TRABAJOS
 let trabajos=[
   {id:1,desc:'Calibración criolla y acústica',precio:60000},
@@ -2979,138 +3122,135 @@ function saveStock(){
 }
 let _scrollOrdenesAlFinal=false;
 let _scrollGlamAlFinal=false;
+// MULTI-INSTRUMENTO PRESUPUESTO
+let newPresInstrumentos=[];
+function buildPresInstrumentoHTML(idx){
+  const inst=newPresInstrumentos[idx];
+  const itemsHTML=inst.items.length?inst.items.map((it,i)=>`<div class="item-row">${itemTag(it.tipo)}<span class="item-row-desc">${it.desc}${it.qty>1?` × ${it.qty}`:''}</span><span class="item-row-price">${it.tipo==='material-glam'?'—':'$'+(it.qty*it.precio).toLocaleString('es-AR')}</span><button class="action-btn" onclick="removeItemPresInstrumento(${idx},${i})"><i class="ti ti-trash"></i></button></div>`).join(''):'<p style="font-size:12px;color:var(--text-muted);font-style:italic;padding:4px 0;">Sin ítems.</p>';
+  const total=inst.items.filter(it=>it.tipo!=='material-glam').reduce((s,it)=>s+it.qty*it.precio,0);
+  return`<div style="background:var(--cream);border:0.5px solid var(--border-light);border-radius:10px;padding:12px;margin-bottom:10px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <strong style="font-size:13px;color:var(--text-dark);">Instrumento ${idx+1}</strong>
+      <button class="action-btn" onclick="removePresInstrumento(${idx})"><i class="ti ti-trash"></i></button>
+    </div>
+    <div class="row2" style="margin-bottom:6px;">
+      <div class="field" style="margin:0;"><label>Instrumento</label><input type="text" value="${inst.instrumento}" oninput="newPresInstrumentos[${idx}].instrumento=this.value" placeholder="Guitarra eléctrica" style="width:100%;font-size:12px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--parchment);color:var(--text-dark);padding:6px 8px;box-sizing:border-box;"></div>
+      <div class="field" style="margin:0;"><label>Marca / Modelo</label><input type="text" value="${inst.marca}" oninput="newPresInstrumentos[${idx}].marca=this.value" placeholder="Fender Strat" style="width:100%;font-size:12px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--parchment);color:var(--text-dark);padding:6px 8px;box-sizing:border-box;"></div>
+    </div>
+    <div class="items-section" style="background:transparent;padding:0;">
+      <div style="margin-bottom:6px;"><select onchange="seleccionarTrabajoPresInst(${idx},this)" style="width:100%;font-size:12px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--parchment);color:var(--text-dark);padding:7px 10px;"><option value="">— Elegir trabajo de la lista —</option>${trabajos.map(t=>`<option value="${t.id}">${t.desc} — $${t.precio.toLocaleString('es-AR')}</option>`).join('')}</select></div>
+      <div style="display:grid;grid-template-columns:auto 1fr auto auto auto;gap:4px;align-items:center;margin-bottom:6px;">
+        <select id="pres-inst-tipo-${idx}" onchange="togglePresInstStock(${idx})" style="font-size:11px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--parchment);color:var(--text-dark);padding:5px;"><option value="trabajo">Trabajo</option><option value="material">Material stock</option><option value="material-libre">Material libre</option><option value="material-glam">Material GLAM</option></select>
+        <div id="pres-inst-desc-wrap-${idx}"><input type="text" id="pres-inst-desc-${idx}" placeholder="Descripción..." style="width:100%;font-size:12px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--parchment);color:var(--text-dark);padding:6px 8px;box-sizing:border-box;"></div>
+        <div id="pres-inst-stock-wrap-${idx}" style="display:none;"><select id="pres-inst-stock-marca-${idx}" onchange="filtrarPresInstStock(${idx})" style="width:100%;font-size:11px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--parchment);color:var(--text-dark);padding:5px;margin-bottom:3px;"><option value="">Todas las marcas</option>${marcas.map(m=>`<option value="${m}">${m}</option>`).join('')}</select><input type="text" id="pres-inst-stock-buscar-${idx}" placeholder="Buscar..." oninput="filtrarPresInstStock(${idx})" style="width:100%;font-size:11px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--parchment);color:var(--text-dark);padding:5px;margin-bottom:3px;box-sizing:border-box;"><select id="pres-inst-stock-sel-${idx}" style="width:100%;font-size:11px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--parchment);color:var(--text-dark);padding:5px;"></select></div>
+        <input type="number" id="pres-inst-qty-${idx}" value="1" min="1" style="width:50px;font-size:12px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--parchment);color:var(--text-dark);padding:6px 4px;text-align:center;">
+        <input type="number" id="pres-inst-precio-${idx}" placeholder="$" min="0" style="width:80px;font-size:12px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--parchment);color:var(--text-dark);padding:6px 8px;">
+        <button class="btn btn-primary" onclick="addItemPresInstrumento(${idx})" style="padding:6px 10px;"><i class="ti ti-plus"></i></button>
+      </div>
+      <div>${itemsHTML}</div>
+      ${total>0?`<div class="total-bar" style="margin-top:6px;"><span class="total-bar-label">Subtotal</span><span class="total-bar-amount">$${total.toLocaleString('es-AR')}</span></div>`:''}
+    </div>
+  </div>`;
+}
+function renderPresInstrumentos(){
+  const el=document.getElementById('new-pres-instrumentos-list');if(!el)return;
+  if(!newPresInstrumentos.length){el.innerHTML='<p style="font-size:12px;color:var(--text-muted);font-style:italic;padding:8px 0;">Agregá al menos un instrumento.</p>';return;}
+  el.innerHTML=newPresInstrumentos.map((_,i)=>buildPresInstrumentoHTML(i)).join('');
+  const totalGeneral=newPresInstrumentos.reduce((s,inst)=>s+inst.items.filter(it=>it.tipo!=='material-glam').reduce((a,it)=>a+it.qty*it.precio,0),0);
+  if(newPresInstrumentos.length>1&&totalGeneral>0)el.innerHTML+=`<div class="total-bar"><span class="total-bar-label">Total general</span><span class="total-bar-amount">$${totalGeneral.toLocaleString('es-AR')}</span></div>`;
+}
+function addInstrumentoPresupuesto(){newPresInstrumentos.push({instrumento:'',marca:'',items:[]});renderPresInstrumentos();}
+function removePresInstrumento(idx){newPresInstrumentos.splice(idx,1);renderPresInstrumentos();}
+function removeItemPresInstrumento(instIdx,itemIdx){newPresInstrumentos[instIdx].items.splice(itemIdx,1);renderPresInstrumentos();}
+function seleccionarTrabajoPresInst(idx,sel){
+  const id=parseInt(sel.value);if(isNaN(id))return;
+  const t=trabajos.find(t=>t.id===id);if(!t)return;
+  document.getElementById(`pres-inst-desc-${idx}`).value=t.desc;
+  document.getElementById(`pres-inst-precio-${idx}`).value=t.precio;
+  sel.value='';
+}
+function togglePresInstStock(idx){
+  const tipo=document.getElementById(`pres-inst-tipo-${idx}`).value;
+  const esMaterial=tipo==='material';
+  const descWrap=document.getElementById(`pres-inst-desc-wrap-${idx}`);
+  const stockWrap=document.getElementById(`pres-inst-stock-wrap-${idx}`);
+  if(descWrap)descWrap.style.display=esMaterial?'none':'block';
+  if(stockWrap){stockWrap.style.display=esMaterial?'block':'none';if(esMaterial)filtrarPresInstStock(idx);}
+  const p=document.getElementById(`pres-inst-precio-${idx}`);if(p)p.value='';
+}
+function filtrarPresInstStock(idx){
+  const buscar=(document.getElementById(`pres-inst-stock-buscar-${idx}`)?.value||'').toLowerCase();
+  const marcaFiltro=document.getElementById(`pres-inst-stock-marca-${idx}`)?.value||'';
+  const sel=document.getElementById(`pres-inst-stock-sel-${idx}`);if(!sel)return;
+  const opciones=[];
+  stock.forEach((s,i)=>{
+    if(marcaFiltro&&s.marca!==marcaFiltro)return;
+    const infoBase=`${s.cat||''}${s.marca?' · '+s.marca:''}${s.nombre?' · '+s.nombre:''}${s.modelo?' · '+s.modelo:''}`;
+    if(s.variantes&&s.variantes.length){s.variantes.forEach((v,vi)=>{const txt=`${infoBase} · ${v.nombre} | Stock: ${v.qty} | $${(s.venta||s.precio||0).toLocaleString('es-AR')}`;if(!buscar||txt.toLowerCase().includes(buscar))opciones.push(`<option value="${i}_${vi}">${txt}</option>`);});}
+    else{const txt=`${infoBase} | Stock: ${s.qty} | $${(s.venta||s.precio||0).toLocaleString('es-AR')}`;if(!buscar||txt.toLowerCase().includes(buscar))opciones.push(`<option value="${i}">${txt}</option>`);}
+  });
+  sel.innerHTML='<option value="">— Seleccioná —</option>'+opciones.join('');
+  sel.onchange=()=>{const val=sel.value;if(!val)return;if(val.includes('_')){const[si]=val.split('_').map(Number);if(stock[si])document.getElementById(`pres-inst-precio-${idx}`).value=stock[si].venta||stock[si].precio||0;}else{const si=parseInt(val);if(!isNaN(si)&&stock[si])document.getElementById(`pres-inst-precio-${idx}`).value=stock[si].venta||stock[si].precio||0;}};
+}
+function addItemPresInstrumento(idx){
+  const tipo=document.getElementById(`pres-inst-tipo-${idx}`).value;
+  const qty=parseInt(document.getElementById(`pres-inst-qty-${idx}`).value)||1;
+  const precio=tipo==='material-glam'?0:parseFloat(document.getElementById(`pres-inst-precio-${idx}`).value)||0;
+  let desc='',stockIdx=null,stockVarianteIdx=null;
+  if(tipo==='material'){
+    const val=document.getElementById(`pres-inst-stock-sel-${idx}`)?.value;
+    if(!val){alert('Seleccioná un producto del stock.');return;}
+    if(val.includes('_')){const[si,vi]=val.split('_').map(Number);desc=getStockDescCompleta(si,vi);stockIdx=si;stockVarianteIdx=vi;}
+    else{const si=parseInt(val);desc=getStockDescCompleta(si,null);stockIdx=si;}
+  } else {
+    desc=document.getElementById(`pres-inst-desc-${idx}`)?.value.trim();
+    if(!desc&&tipo!=='material-glam'){alert('Ingresá la descripción.');return;}
+  }
+  newPresInstrumentos[idx].items.push({tipo,desc:desc||'Material GLAM',qty,precio,stockIdx,stockVarianteIdx});
+  renderPresInstrumentos();
+}
 function openPresupuestoModal(){
-  presItems=[];
-  presFotosData=[];
+  newPresInstrumentos=[{instrumento:'',marca:'',items:[]}];
+  presItems=[];presFotosData=[];
   populateClienteSelect('p-cliente');
-  renderPresItems();
   document.querySelectorAll('#modal-presupuesto input:not([type=file]),#modal-presupuesto textarea').forEach(el=>el.value='');
   document.getElementById('p-origen').value='propio';
   document.getElementById('p-fotos-preview').innerHTML='';
-  // Poblar selector de trabajos
-  const tSel=document.getElementById('pres-trabajo-sel');
-  if(tSel)tSel.innerHTML='<option value="">— Elegir trabajo de la lista —</option>'+trabajos.map(t=>`<option value="${t.id}">${t.desc} — $${t.precio.toLocaleString('es-AR')}</option>`).join('');
-  // Poblar marcas en stock
-  const mSel=document.getElementById('pres-stock-marca-filtro');
-  if(mSel)mSel.innerHTML='<option value="">Todas las marcas</option>'+marcas.map(m=>`<option value="${m}">${m}</option>`).join('');
-  filtrarStockSelect('pres');
-  document.getElementById('pres-stock-sel').onchange=()=>{
-    const val=document.getElementById('pres-stock-sel').value;if(!val)return;
-    if(val.includes('_')){const[si]=val.split('_').map(Number);if(stock[si])document.getElementById('pres-precio').value=stock[si].venta||stock[si].precio||0;}
-    else{const idx=parseInt(val);if(!isNaN(idx)&&stock[idx])document.getElementById('pres-precio').value=stock[idx].venta||stock[idx].precio||0;}
-  };
+  renderPresInstrumentos();
   document.getElementById('modal-presupuesto').classList.add('open');
 }
-function openClienteModalDesdePresupuesto(){
-  window._volverAPresupuesto=true;
-  document.getElementById('modal-cliente').classList.add('open');
-}
-function seleccionarTrabajoPresupuesto(){
-  const sel=document.getElementById('pres-trabajo-sel');
-  const id=parseInt(sel.value);if(isNaN(id))return;
-  const t=trabajos.find(t=>t.id===id);if(!t)return;
-  document.getElementById('pres-desc').value=t.desc;
-  document.getElementById('pres-precio').value=t.precio;
-}
+function openClienteModalDesdePresupuesto(){window._volverAPresupuesto=true;document.getElementById('modal-cliente').classList.add('open');}
 function getStockDescCompleta(idx,varIdx){
   const s=stock[idx];if(!s)return'?';
-  let desc=s.marca?s.marca+' ':'';
-  desc+=s.nombre||'';
-  if(s.modelo)desc+=' '+s.modelo;
+  let desc=s.marca?s.marca+' ':'';desc+=s.nombre||'';if(s.modelo)desc+=' '+s.modelo;
   if(varIdx!==null&&varIdx!==undefined&&s.variantes&&s.variantes[varIdx])desc+=' — '+s.variantes[varIdx].nombre;
   return desc.trim();
 }
-function addItemToPresupuesto(){
-  const tipo=document.getElementById('pres-tipo').value;
-  const qty=parseInt(document.getElementById('pres-qty').value)||1;
-  const precio=tipo==='material-glam'?0:parseFloat(document.getElementById('pres-precio').value)||0;
-  let desc='',stockIdx=null,stockVarianteIdx=null;
-  if(tipo==='material'){
-    const val=document.getElementById('pres-stock-sel').value;
-    if(!val){alert('Seleccioná un producto.');return;}
-    if(val.includes('_')){
-      const[si,vi]=val.split('_').map(Number);
-      if(!stock[si]){alert('Producto no encontrado.');return;}
-      desc=getStockDescCompleta(si,vi);stockIdx=si;stockVarianteIdx=vi;
-    } else {
-      const idx=parseInt(val);
-      if(isNaN(idx)||!stock[idx]){alert('Seleccioná un producto.');return;}
-      desc=getStockDescCompleta(idx,null);stockIdx=idx;
-    }
-  }else{
-    desc=document.getElementById('pres-desc').value.trim();
-    if(!desc){alert('Ingresá descripción.');return;}
-  }
-  presItems.push({tipo,desc,qty,precio,stockIdx,stockVarianteIdx});
-  renderPresItems();
-  document.getElementById('pres-desc').value='';
-  document.getElementById('pres-precio').value='';
-  document.getElementById('pres-qty').value=1;
-}
-function removePresItem(i){presItems.splice(i,1);renderPresItems();}
-function renderPresItems(){
-  const list=document.getElementById('pres-items-list'),bar=document.getElementById('pres-total-bar');
-  if(!presItems.length){list.innerHTML='<p style="font-size:12px;color:var(--text-muted);font-style:italic;padding:4px 0;">Sin ítems.</p>';bar.style.display='none';return;}
-  list.innerHTML=presItems.map((it,i)=>`<div class="item-row">
-    ${itemTag(it.tipo)}
-    <span class="item-row-desc">${it.desc}${it.qty>1?` × ${it.qty}`:''}${it.tipo==='material-glam'?' <small style="color:var(--glam);font-size:10px;">(A reponer)</small>':''}</span>
-    <span class="item-row-price">${it.tipo==='material-glam'?'—':'$'+(it.qty*it.precio).toLocaleString('es-AR')}</span>
-    <button class="action-btn" onclick="removePresItem(${i})"><i class="ti ti-trash"></i></button>
-  </div>`).join('');
-  const total=presItems.filter(it=>it.tipo!=='material-glam').reduce((s,it)=>s+it.qty*it.precio,0);
-  bar.style.display='flex';
-  document.getElementById('pres-total').textContent='$'+total.toLocaleString('es-AR');
-}
 var presFotosData=[];
 var editPresFotosData=[];
-function handlePresFotos(e){
-  Array.from(e.target.files).forEach(f=>{
-    const reader=new FileReader();
-    reader.onload=ev=>{presFotosData.push(ev.target.result);renderPresFotosPreview();};
-    reader.readAsDataURL(f);
-  });
-}
+function handlePresFotos(e){Array.from(e.target.files).forEach(f=>{const reader=new FileReader();reader.onload=ev=>{presFotosData.push(ev.target.result);renderPresFotosPreview();};reader.readAsDataURL(f);});}
 function removePresFoto(i){presFotosData.splice(i,1);renderPresFotosPreview();}
-function renderPresFotosPreview(){
-  document.getElementById('p-fotos-preview').innerHTML=presFotosData.map((f,i)=>
-    `<div style="position:relative;width:60px;height:60px;border-radius:6px;overflow:hidden;border:0.5px solid var(--border-light);">
-      <img src="${f}" style="width:100%;height:100%;object-fit:cover;">
-      <button class="action-btn" onclick="removePresFoto(${i})" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.5);color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;padding:0;"><i class="ti ti-x"></i></button>
-    </div>`).join('');
-}
-function handleEditPresFotos(e){
-  Array.from(e.target.files).forEach(f=>{
-    const reader=new FileReader();
-    reader.onload=ev=>{editPresFotosData.push(ev.target.result);renderEditPresFotosPreview();};
-    reader.readAsDataURL(f);
-  });
-}
+function renderPresFotosPreview(){document.getElementById('p-fotos-preview').innerHTML=presFotosData.map((f,i)=>`<div style="position:relative;width:60px;height:60px;border-radius:6px;overflow:hidden;border:0.5px solid var(--border-light);"><img src="${f}" style="width:100%;height:100%;object-fit:cover;"><button class="action-btn" onclick="removePresFoto(${i})" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.5);color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;padding:0;"><i class="ti ti-x"></i></button></div>`).join('');}
+function handleEditPresFotos(e){Array.from(e.target.files).forEach(f=>{const reader=new FileReader();reader.onload=ev=>{editPresFotosData.push(ev.target.result);renderEditPresFotosPreview();};reader.readAsDataURL(f);});}
 function removeEditPresFoto(i){editPresFotosData.splice(i,1);renderEditPresFotosPreview();}
-function renderEditPresFotosPreview(){
-  document.getElementById('edit-p-fotos-preview').innerHTML=editPresFotosData.map((f,i)=>
-    `<div style="position:relative;width:60px;height:60px;border-radius:6px;overflow:hidden;border:0.5px solid var(--border-light);">
-      <img src="${f}" style="width:100%;height:100%;object-fit:cover;">
-      <button class="action-btn" onclick="removeEditPresFoto(${i})" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.5);color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;padding:0;"><i class="ti ti-x"></i></button>
-    </div>`).join('');
-}
+function renderEditPresFotosPreview(){document.getElementById('edit-p-fotos-preview').innerHTML=editPresFotosData.map((f,i)=>`<div style="position:relative;width:60px;height:60px;border-radius:6px;overflow:hidden;border:0.5px solid var(--border-light);"><img src="${f}" style="width:100%;height:100%;object-fit:cover;"><button class="action-btn" onclick="removeEditPresFoto(${i})" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.5);color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;padding:0;"><i class="ti ti-x"></i></button></div>`).join('');}
 function savePresupuesto(){
   const cliente=document.getElementById('p-cliente').value;
-  const instrumento=document.getElementById('p-instrumento').value;
-  if(!cliente||!instrumento){alert('Completá cliente e instrumento.');return;}
-  const total=presItems.filter(it=>it.tipo!=='material-glam').reduce((s,it)=>s+it.qty*it.precio,0);
-  presupuestos.push({
-    id:presupuestoCounter++,
-    origen:document.getElementById('p-origen').value,
-    cliente,instrumento,
-    marca:document.getElementById('p-marca').value,
-    obs:document.getElementById('p-obs').value,
-    items:presItems.map(it=>({...it})),
-    fotos:[...presFotosData],
-    monto:total,
-    estado:'Pendiente',
-    fecha:new Date().toLocaleDateString('es-AR')
-  });
-  presItems=[];presFotosData=[];
+  if(!cliente){alert('Seleccioná un cliente.');return;}
+  const instrumentosValidos=newPresInstrumentos.filter(inst=>inst.instrumento.trim()||inst.items.length);
+  if(!instrumentosValidos.length){alert('Agregá al menos un instrumento.');return;}
+  if(instrumentosValidos.length===1){
+    const inst=instrumentosValidos[0];
+    const total=inst.items.filter(it=>it.tipo!=='material-glam').reduce((s,it)=>s+it.qty*it.precio,0);
+    presupuestos.push({id:presupuestoCounter++,origen:document.getElementById('p-origen').value,cliente,instrumento:inst.instrumento||'—',marca:inst.marca,obs:document.getElementById('p-obs').value,items:inst.items.map(it=>({...it})),fotos:[...presFotosData],monto:total,estado:'Pendiente',fecha:new Date().toLocaleDateString('es-AR')});
+  } else {
+    const groupId=Date.now();
+    instrumentosValidos.forEach(inst=>{
+      const total=inst.items.filter(it=>it.tipo!=='material-glam').reduce((s,it)=>s+it.qty*it.precio,0);
+      presupuestos.push({id:presupuestoCounter++,origen:document.getElementById('p-origen').value,cliente,instrumento:inst.instrumento||'—',marca:inst.marca,obs:document.getElementById('p-obs').value,items:inst.items.map(it=>({...it})),fotos:[...presFotosData],monto:total,estado:'Pendiente',fecha:new Date().toLocaleDateString('es-AR'),groupId});
+    });
+  }
+  newPresInstrumentos=[];presItems=[];presFotosData=[];
   renderPresupuestos();closeModal('modal-presupuesto');scheduleSave();
 }
 function saveRemito(){const fecha=document.getElementById('r-fecha').value;if(!fecha){alert('Ingresá la fecha.');return;}remitos.push({id:remitoCounter++,fecha,retiro:document.getElementById('r-retiro').value,devuelvo:document.getElementById('r-devuelvo').value,notas:document.getElementById('r-notas').value});renderRemitos();closeModal('modal-remito');scheduleSave();document.querySelectorAll('#modal-remito input,#modal-remito textarea').forEach(el=>el.value='');}
