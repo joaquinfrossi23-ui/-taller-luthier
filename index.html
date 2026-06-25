@@ -913,6 +913,26 @@ tr:hover td{background:rgba(196,149,106,0.04);}
   </div>
 </div>
 
+<!-- MODAL COMPARTIR SELECCIÓN -->
+<div class="modal-bg" id="modal-compartir-sel">
+  <div class="modal modal-wide">
+    <div class="modal-header"><h3 id="compartir-sel-title">Compartir selección</h3><button class="action-btn" onclick="closeModal('modal-compartir-sel')"><i class="ti ti-x"></i></button></div>
+    <div class="modal-body">
+      <div class="field" style="margin-bottom:8px;">
+        <label>Filtrar por cliente</label>
+        <select id="compartir-sel-cliente" onchange="renderCompartirLista()" style="width:100%;font-size:13px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--cream);color:var(--text-dark);padding:7px 10px;"></select>
+      </div>
+      <div id="compartir-sel-lista" style="max-height:300px;overflow-y:auto;"></div>
+      <div class="total-bar" id="compartir-sel-total" style="display:none;margin-top:8px;"><span class="total-bar-label">Total seleccionado</span><span class="total-bar-amount" id="compartir-sel-total-monto">$0</span></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-compartir-sel')">Cancelar</button>
+      <button class="btn" onclick="compartirSelTexto()" style="background:#25D366;color:#fff;border-color:#25D366;"><i class="ti ti-brand-whatsapp"></i> Compartir texto</button>
+      <button class="btn btn-primary" onclick="compartirSelPDF()"><i class="ti ti-file-download"></i> Ver PDF</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL CONFIRMAR BORRAR -->
 <div class="modal-bg" id="modal-confirmar">
   <div class="confirm-modal">
@@ -1187,12 +1207,12 @@ const CATS_DEFAULT=['Cuerdas','Clavijas / Maquinaria','Maderas','Barnices / Adhe
 let categorias=[...CATS_DEFAULT];
 
 const sectionConfig={
-  ordenes:{title:'Órdenes de trabajo',btnLabel:'Nueva orden',btnAction:'openOrdenModal()',btnClass:'btn-primary'},
+  ordenes:{title:'Órdenes de trabajo',btnLabel:'Nueva orden',btnAction:'openOrdenModal()',btnClass:'btn-primary',btn2Label:'Compartir selección',btn2Action:'abrirCompartirSeleccion("ordenes")',btn2Class:'btn'},
   fabricacion:{title:'Fabricación',btnLabel:'Nuevo instrumento',btnAction:'openFabModal()',btnClass:'btn-primary'},
   clientes:{title:'Clientes',btnLabel:'Nuevo cliente',btnAction:'openClienteModal()',btnClass:'btn-primary'},
   stock:{title:'Stock',btnLabel:'Agregar ítem',btnAction:'openStockModal()',btnClass:'btn-primary'},
   trabajos:{title:'Trabajos',btnLabel:'Nuevo trabajo',btnAction:'openTrabajoModal()',btnClass:'btn-primary'},
-  presupuestos:{title:'Presupuestos',btnLabel:'Nuevo presupuesto',btnAction:'openPresupuestoModal()',btnClass:'btn-primary'},
+  presupuestos:{title:'Presupuestos',btnLabel:'Nuevo presupuesto',btnAction:'openPresupuestoModal()',btnClass:'btn-primary',btn2Label:'Compartir selección',btn2Action:'abrirCompartirSeleccion("presupuestos")',btn2Class:'btn'},
   glam:{title:'Panel GLAM',btnLabel:'Nueva orden GLAM',btnAction:'openGlamOrden()',btnClass:'btn-glam'},
   'glam-remitos':{title:'Remitos GLAM',btnLabel:'Nueva visita',btnAction:'openRemitoModal()',btnClass:'btn-glam'},
   padel:{title:'Padel — Reparaciones',btnLabel:'Nueva reparación',btnAction:'openPadelModal()',btnClass:''},
@@ -1280,6 +1300,21 @@ function showSection(s){
   btn.className='btn '+cfg.btnClass;
   btn.innerHTML='<i class="ti ti-plus"></i> '+cfg.btnLabel;
   btn.setAttribute('onclick',cfg.btnAction);
+  // Botón secundario (compartir selección)
+  let btn2=document.getElementById('btn-add2');
+  if(!btn2){
+    btn2=document.createElement('button');
+    btn2.id='btn-add2';
+    btn.parentNode.insertBefore(btn2,btn);
+  }
+  if(cfg.btn2Label){
+    btn2.className='btn '+cfg.btn2Class;
+    btn2.innerHTML='<i class="ti ti-share"></i> '+cfg.btn2Label;
+    btn2.setAttribute('onclick',cfg.btn2Action);
+    btn2.style.display='';
+  } else {
+    btn2.style.display='none';
+  }
   // Inicializar remito GLAM al entrar a esa sección
   if(s==='glam-remitos')initRemitoGlam();
   // Scroll al final solo al entrar
@@ -1667,7 +1702,181 @@ function actualizarFechaTrabajos(){
   renderTrabajos();scheduleSave();
 }
 
-// MÓDULO PADEL
+// COMPARTIR SELECCIÓN
+let _compartirTipo=''; // 'ordenes' o 'presupuestos'
+let _compartirSeleccion=new Set();
+
+function abrirCompartirSeleccion(tipo){
+  _compartirTipo=tipo;
+  _compartirSeleccion=new Set();
+  document.getElementById('compartir-sel-title').textContent=tipo==='ordenes'?'Compartir órdenes':'Compartir presupuestos';
+  // Poblar clientes
+  const lista=tipo==='ordenes'?ordenes:presupuestos;
+  const clientesUnicos=[...new Set(lista.map(x=>x.cliente))].sort();
+  const sel=document.getElementById('compartir-sel-cliente');
+  sel.innerHTML='<option value="">Todos los clientes</option>'+clientesUnicos.map(c=>`<option value="${c}">${c}</option>`).join('');
+  renderCompartirLista();
+  document.getElementById('modal-compartir-sel').classList.add('open');
+}
+
+function renderCompartirLista(){
+  const tipo=_compartirTipo;
+  const clienteFiltro=document.getElementById('compartir-sel-cliente').value;
+  const lista=(tipo==='ordenes'?ordenes:presupuestos).filter(x=>!clienteFiltro||x.cliente===clienteFiltro);
+  const el=document.getElementById('compartir-sel-lista');
+  if(!lista.length){el.innerHTML='<p style="color:var(--text-muted);font-size:13px;font-style:italic;">Sin resultados.</p>';return;}
+  el.innerHTML=lista.map(x=>{
+    const total=tipo==='ordenes'
+      ?calcTotal(x.items||[])
+      :(x.items||[]).filter(it=>it.tipo!=='material-glam').reduce((s,it)=>s+it.qty*it.precio,0)||x.monto||0;
+    const checked=_compartirSeleccion.has(x.id)?'checked':'';
+    return`<label style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;background:var(--cream);border:0.5px solid var(--border-light);margin-bottom:6px;cursor:pointer;">
+      <input type="checkbox" ${checked} onchange="toggleCompartirSel(${x.id},this.checked)" style="width:16px;height:16px;accent-color:var(--wood-mid);flex-shrink:0;">
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:500;font-size:13px;color:var(--text-dark);">${x.instrumento||'—'}${x.marca?' <span style="font-weight:400;color:var(--text-muted);">('+x.marca+')</span>':''}</div>
+        <div style="font-size:11px;color:var(--text-muted);">${x.cliente} · ${x.fecha||''} · <span class="badge ${tipo==='ordenes'?badgeClass(x.estado):'badge-progress'}" style="font-size:10px;padding:1px 6px;">${x.estado}</span></div>
+      </div>
+      <div style="font-weight:600;font-size:13px;color:var(--text-dark);white-space:nowrap;">$${total.toLocaleString('es-AR')}</div>
+    </label>`;
+  }).join('');
+  actualizarTotalCompartir();
+}
+
+function toggleCompartirSel(id,checked){
+  if(checked)_compartirSeleccion.add(id);
+  else _compartirSeleccion.delete(id);
+  actualizarTotalCompartir();
+}
+
+function actualizarTotalCompartir(){
+  const tipo=_compartirTipo;
+  const lista=tipo==='ordenes'?ordenes:presupuestos;
+  const total=lista.filter(x=>_compartirSeleccion.has(x.id)).reduce((s,x)=>{
+    const t=tipo==='ordenes'
+      ?calcTotal(x.items||[])
+      :(x.items||[]).filter(it=>it.tipo!=='material-glam').reduce((a,it)=>a+it.qty*it.precio,0)||x.monto||0;
+    return s+t;
+  },0);
+  const bar=document.getElementById('compartir-sel-total');
+  bar.style.display=_compartirSeleccion.size?'flex':'none';
+  document.getElementById('compartir-sel-total-monto').textContent='$'+total.toLocaleString('es-AR');
+}
+
+function getSeleccionados(){
+  const tipo=_compartirTipo;
+  const lista=tipo==='ordenes'?ordenes:presupuestos;
+  return lista.filter(x=>_compartirSeleccion.has(x.id));
+}
+
+async function compartirSelTexto(){
+  const seleccionados=getSeleccionados();
+  if(!seleccionados.length){alert('Seleccioná al menos uno.');return;}
+  const tipo=_compartirTipo;
+  const cliente=seleccionados[0].cliente;
+  let texto=tipo==='ordenes'
+    ?`🎸 *Órdenes de trabajo — Joaquin Rossi Luthier*\n\n`
+    :`🎸 *Presupuesto — Joaquin Rossi Luthier*\n\n`;
+  texto+=`Cliente: ${cliente}\n\n`;
+  let totalGeneral=0;
+  seleccionados.forEach((x,i)=>{
+    const items=x.items||[];
+    const total=tipo==='ordenes'
+      ?calcTotal(items)
+      :items.filter(it=>it.tipo!=='material-glam').reduce((s,it)=>s+it.qty*it.precio,0)||x.monto||0;
+    totalGeneral+=total;
+    texto+=`*${i+1}. ${x.instrumento||'—'}${x.marca?' ('+x.marca+')':''}*\n`;
+    if(items.length){
+      items.forEach(it=>{
+        if(it.tipo==='material-glam')texto+=`  • ${it.desc} (insumo incluido)\n`;
+      else texto+=`  • ${it.desc}${it.qty>1?' × '+it.qty:''}: $${(it.qty*it.precio).toLocaleString('es-AR')}\n`;
+      });
+    }
+    texto+=`  Subtotal: $${total.toLocaleString('es-AR')}\n\n`;
+  });
+  texto+=`*Total general: $${totalGeneral.toLocaleString('es-AR')}*\n`;
+  if(tipo==='ordenes'){
+    const cobradoTotal=seleccionados.reduce((s,x)=>s+calcCobrado(x.cobros||[]),0);
+    const saldoTotal=Math.max(0,totalGeneral-cobradoTotal);
+    if(cobradoTotal>0)texto+=`Cobrado: $${cobradoTotal.toLocaleString('es-AR')}\n`;
+    if(saldoTotal>0)texto+=`Saldo: $${saldoTotal.toLocaleString('es-AR')}\n`;
+  }
+  texto+=`\n💳 *Datos para transferencia:*\nAlias: *musicaydeporte*\nTitular: Joaquin Facundo Rossi`;
+  if(navigator.share){try{await navigator.share({title:`${tipo==='ordenes'?'Órdenes':'Presupuesto'} — ${cliente}`,text:texto});}catch(e){}}
+  else{navigator.clipboard.writeText(texto).then(()=>alert('Texto copiado al portapapeles.'));}
+}
+
+function compartirSelPDF(){
+  const seleccionados=getSeleccionados();
+  if(!seleccionados.length){alert('Seleccioná al menos uno.');return;}
+  const tipo=_compartirTipo;
+  const cliente=seleccionados[0].cliente;
+  let totalGeneral=0;
+  const contenido=seleccionados.map((x,i)=>{
+    const items=x.items||[];
+    const total=tipo==='ordenes'
+      ?calcTotal(items)
+      :items.filter(it=>it.tipo!=='material-glam').reduce((s,it)=>s+it.qty*it.precio,0)||x.monto||0;
+    totalGeneral+=total;
+    const itemsHtml=items.map(it=>{
+      if(it.tipo==='material-glam')return`<tr><td style="padding:6px 12px;font-size:12px;border-bottom:0.5px solid #EDE3CE;">${it.desc}</td><td style="padding:6px 12px;font-size:11px;color:#7B3FA0;border-bottom:0.5px solid #EDE3CE;text-align:right;">Insumo GLAM</td></tr>`;
+      return`<tr><td style="padding:6px 12px;font-size:12px;border-bottom:0.5px solid #EDE3CE;">${it.desc}${it.qty>1?' × '+it.qty:''}</td><td style="padding:6px 12px;font-size:12px;font-weight:500;border-bottom:0.5px solid #EDE3CE;text-align:right;">$${(it.qty*it.precio).toLocaleString('es-AR')}</td></tr>`;
+    }).join('');
+    return`<div style="margin-bottom:16px;background:#FAF6EC;border:0.5px solid #DDD0B8;border-radius:8px;overflow:hidden;">
+      <div style="background:#EDE3CE;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-weight:600;font-size:13px;color:#2C1A0E;">${i+1}. ${x.instrumento||'—'}${x.marca?' ('+x.marca+')':''}</span>
+        <span style="font-size:11px;color:#8B7355;">${x.fecha||''}</span>
+      </div>
+      ${items.length?`<table style="width:100%;border-collapse:collapse;">${itemsHtml}</table>`:'<p style="padding:8px 12px;font-size:12px;color:#8B7355;font-style:italic;">Sin ítems.</p>'}
+      <div style="background:#2C1A0E;padding:8px 12px;display:flex;justify-content:space-between;">
+        <span style="font-size:11px;color:#C4956A;">Subtotal</span>
+        <span style="font-size:15px;color:#E8C98A;font-weight:600;">$${total.toLocaleString('es-AR')}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  const cobradoTotal=tipo==='ordenes'?seleccionados.reduce((s,x)=>s+calcCobrado(x.cobros||[]),0):0;
+  const saldoTotal=Math.max(0,totalGeneral-cobradoTotal);
+
+  const html=`<html><head><title>${tipo==='ordenes'?'Órdenes':'Presupuesto'} — ${cliente}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <style>body{margin:0;padding:0;font-family:'Inter',sans-serif;background:#fff;} @media print{body{padding:0;}}</style>
+    </head><body>
+    <div style="padding:1.5rem;max-width:600px;margin:0 auto;">
+      <div style="background:#2C1A0E;border-radius:10px;padding:1.25rem 1.5rem;margin-bottom:1.25rem;display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-family:'Great Vibes',cursive;font-size:32px;color:#E8C98A;line-height:1;">Joaquin Rossi</div>
+          <div style="font-size:9px;letter-spacing:0.2em;color:#C4956A;text-transform:uppercase;margin-top:3px;">Luthier</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:11px;color:#C4956A;">${tipo==='ordenes'?'ÓRDENES DE TRABAJO':'PRESUPUESTO'}</div>
+          <div style="font-size:11px;color:#8B7355;">${new Date().toLocaleDateString('es-AR')}</div>
+        </div>
+      </div>
+      <div style="background:#FAF6EC;border:0.5px solid #DDD0B8;border-radius:8px;padding:10px 1rem;margin-bottom:1rem;">
+        <div style="font-size:10px;color:#8B7355;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Cliente</div>
+        <div style="font-size:15px;font-weight:500;color:#1C0F05;">${cliente}</div>
+      </div>
+      ${contenido}
+      <div style="background:#2C1A0E;border-radius:8px;padding:12px 1rem;margin-bottom:1rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:13px;color:#C4956A;">Total general</span>
+          <span style="font-family:'Playfair Display',serif;font-size:22px;color:#E8C98A;">$${totalGeneral.toLocaleString('es-AR')}</span>
+        </div>
+        ${cobradoTotal>0?`<div style="display:flex;justify-content:space-between;margin-top:6px;"><span style="font-size:12px;color:#8B7355;">Cobrado</span><span style="font-size:12px;color:#7AB87A;">$${cobradoTotal.toLocaleString('es-AR')}</span></div>`:''}
+        ${saldoTotal>0?`<div style="display:flex;justify-content:space-between;margin-top:4px;"><span style="font-size:12px;color:#8B7355;">Saldo</span><span style="font-size:14px;font-weight:600;color:#E8C98A;">$${saldoTotal.toLocaleString('es-AR')}</span></div>`:''}
+      </div>
+      <div style="background:#F0E8F7;border:0.5px solid #C9A8E0;border-radius:8px;padding:12px 1rem;">
+        <div style="font-size:10px;color:#7B3FA0;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">💳 Datos para transferencia</div>
+        <div style="font-size:13px;color:#1C0F05;margin-bottom:3px;"><strong>Alias:</strong> musicaydeporte</div>
+        <div style="font-size:13px;color:#1C0F05;"><strong>Titular:</strong> Joaquin Facundo Rossi</div>
+      </div>
+    </div>
+    <script>window.onload=()=>{window.print();}<\/script>
+  </body></html>`;
+  const ventana=window.open('','_blank');
+  ventana.document.write(html);
+  ventana.document.close();
+}
 let padelClientes=[];
 let padelReps=[];
 let padelRepCounter=1;
@@ -2498,22 +2707,6 @@ function openLightbox(src){document.getElementById('lightbox-img').src=src;docum
 function closeLightbox(){document.getElementById('lightbox').classList.remove('open');}
 function addFotoToOrden(id,input){const o=ordenes.find(o=>o.id===id);if(!o||!input.files[0])return;if(!o.fotos)o.fotos=[];if(o.fotos.length>=2)return;const r=new FileReader();r.onload=e=>{o.fotos.push(e.target.result);scheduleSave();openDetalle(id);};r.readAsDataURL(input.files[0]);}
 function deleteFotoFromOrden(id,i){const o=ordenes.find(o=>o.id===id);if(!o||!o.fotos)return;o.fotos.splice(i,1);scheduleSave();renderOrdenes();openDetalle(id);}
-function saveOrden(){
-  const cliente=document.getElementById('o-cliente').value,instrumento=document.getElementById('o-instrumento').value;
-  if(!cliente||!instrumento){alert('Completá cliente e instrumento.');return;}
-  newItems.forEach(it=>{
-    if(it.stockIdx!=null){
-      if(it.stockVarianteIdx!=null){
-        if(stock[it.stockIdx]&&stock[it.stockIdx].variantes[it.stockVarianteIdx])
-          stock[it.stockIdx].variantes[it.stockVarianteIdx].qty-=it.qty;
-      } else {
-        if(stock[it.stockIdx])stock[it.stockIdx].qty-=it.qty;
-      }
-    }
-  });
-  ordenes.push({id:ordenCounter++,origen:document.getElementById('o-origen').value,cliente,instrumento,marca:document.getElementById('o-marca').value,estado:document.getElementById('o-estado').value,obs:document.getElementById('o-obs').value,fotos:[...newFotosData],items:newItems.map(it=>({...it})),cobros:[],fecha:new Date().toLocaleDateString('es-AR')});
-  newFotosData=[];newItems=[];renderAll();closeModal('modal-orden');scheduleSave();
-}
 function openDetalle(id){
   const o=ordenes.find(o=>o.id===id);if(!o)return;
   const c=clientes.find(c=>c.nombre===o.cliente);
