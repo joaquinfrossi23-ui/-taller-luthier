@@ -3947,7 +3947,7 @@ function actualizarRemitoGuardado(id){
   });
   r.fecha=document.getElementById('gr-fecha').value;
   r.ordenIds=[...grOrdenes];
-  r.compras=[...grCompras];
+  r.compras=[...glamCompras];
   r.stockReponer=[...stockItems];
   r.comision=comision;
   r.combustible=combustible;
@@ -3966,16 +3966,15 @@ function actualizarRemitoGuardado(id){
 
 function pdfRemitoGuardado(id){
   const r=remitos.find(r=>r.id===id);if(!r)return;
-  // Cargar temporalmente en las variables globales y generar PDF
-  const tmpOrdenes=grOrdenes,tmpCompras=grCompras;
+  const tmpOrdenes=grOrdenes,tmpGlamCompras=[...glamCompras];
   grOrdenes=[...(r.ordenIds||[])];
-  grCompras=[...(r.compras||[])];
+  glamCompras=[...(r.compras||[])];
   const tmpCombustible=document.getElementById('gr-combustible').value;
   document.getElementById('gr-combustible').value=r.combustible||0;
   document.getElementById('gr-fecha').value=r.fecha;
   generarRemitoGlam();
   // Restaurar
-  grOrdenes=tmpOrdenes;grCompras=tmpCompras;
+  grOrdenes=tmpOrdenes;glamCompras=tmpGlamCompras;
   document.getElementById('gr-combustible').value=tmpCombustible;
 }
 
