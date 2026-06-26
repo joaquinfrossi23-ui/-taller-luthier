@@ -398,6 +398,7 @@ tr:hover td{background:rgba(196,149,106,0.04);}
     <div class="divider"></div>
     <div class="nav-section-label">GLAM</div>
     <div class="nav-item glam-nav" onclick="showSection('glam')" id="nav-glam"><i class="ti ti-building-store"></i><span class="nav-label">Panel GLAM</span></div>
+    <div class="nav-item glam-nav" onclick="showSection('glam-compras')" id="nav-glam-compras"><i class="ti ti-shopping-cart"></i><span class="nav-label">Comprar</span></div>
     <div class="nav-item glam-nav" onclick="showSection('glam-remitos')" id="nav-glam-remitos"><i class="ti ti-truck"></i><span class="nav-label">Remitos</span></div>
     <div class="divider"></div>
     <div class="nav-section-label" style="color:#0EA5E9;">Padel</div>
@@ -533,16 +534,35 @@ tr:hover td{background:rgba(196,149,106,0.04);}
         </div>
       </div>
 
+      <!-- SECCIÓN COMPRAS GLAM -->
+      <div id="section-glam-compras" class="section-hidden">
+        <div style="display:flex;gap:6px;margin-bottom:1rem;align-items:flex-end;">
+          <div class="field" style="flex:2;margin:0;"><label>Producto</label><input type="text" id="glam-compra-desc" placeholder="Ej: Cuerdas D'Addario 0.10" style="width:100%;"></div>
+          <div class="field" style="flex:0 0 80px;margin:0;"><label>Cantidad</label><input type="number" id="glam-compra-qty" value="1" min="1" style="width:100%;"></div>
+          <button class="btn btn-glam" onclick="addGlamCompra()" style="padding:8px 14px;flex-shrink:0;height:36px;"><i class="ti ti-plus"></i></button>
+        </div>
+        <div class="card">
+          <div class="card-header glam-header" style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="color:var(--glam);">Lista de compras</span>
+            <button class="btn" onclick="borrarTodasCompras()" style="font-size:11px;padding:3px 10px;color:#C0392B;border-color:#C0392B;background:transparent;"><i class="ti ti-trash"></i> Borrar todo</button>
+          </div>
+          <div id="glam-compras-lista" style="padding:8px 0;"></div>
+        </div>
+      </div>
+
       <div id="section-glam-remitos" class="section-hidden">
         <div class="card" style="margin-bottom:1rem;">
           <div class="card-header glam-header" style="justify-content:space-between;">
             <span style="color:var(--glam);">Resumen de visita a GLAM</span>
             <div style="display:flex;gap:8px;">
+              <button class="btn" onclick="compartirRemito()" style="background:#25D366;color:#fff;border-color:#25D366;"><i class="ti ti-brand-whatsapp"></i> Compartir</button>
               <button class="btn btn-glam" onclick="generarRemitoGlam()"><i class="ti ti-file-download"></i> Generar PDF</button>
               <button class="btn" onclick="guardarRemitoGlam()"><i class="ti ti-device-floppy"></i> Guardar visita</button>
             </div>
           </div>
           <div style="padding:1rem;">
+            <!-- Compras pendientes -->
+            <div id="gr-compras-pendientes" style="display:none;"></div>
             <!-- Fecha -->
             <div class="field" style="margin-bottom:1rem;max-width:200px;">
               <label>Fecha de la visita</label>
@@ -572,15 +592,13 @@ tr:hover td{background:rgba(196,149,106,0.04);}
               <div id="gr-stock-reponer"></div>
             </div>
 
-            <!-- Compras en GLAM -->
+            <!-- Lista de compras pendientes (editable) -->
             <div class="det-section" style="margin-top:8px;">
-              <h4>Compras en GLAM</h4>
-              <div id="gr-compras-lista"></div>
-              <div style="display:grid;grid-template-columns:1fr auto auto;gap:8px;margin-top:8px;align-items:end;">
-                <input type="text" id="gr-compra-nombre" placeholder="Producto..." style="font-size:13px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--cream);color:var(--text-dark);padding:7px 10px;">
-                <input type="number" id="gr-compra-qty" placeholder="Cant." min="1" value="1" style="width:64px;font-size:13px;font-family:'Inter',sans-serif;border-radius:6px;border:0.5px solid var(--border);background:var(--cream);color:var(--text-dark);padding:7px 8px;">
-                <button class="btn btn-primary" onclick="agregarCompraRemito()"><i class="ti ti-plus"></i></button>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <h4 style="margin:0;">Lista de compras</h4>
+                <a href="#" onclick="showSection('glam-compras');return false;" style="font-size:11px;color:var(--glam);">Editar lista →</a>
               </div>
+              <div id="gr-compras-pendientes-remito"></div>
             </div>
 
             <!-- Liquidación -->
@@ -1214,6 +1232,7 @@ const sectionConfig={
   trabajos:{title:'Trabajos',btnLabel:'Nuevo trabajo',btnAction:'openTrabajoModal()',btnClass:'btn-primary'},
   presupuestos:{title:'Presupuestos',btnLabel:'Nuevo presupuesto',btnAction:'openPresupuestoModal()',btnClass:'btn-primary',btn2Label:'Compartir selección',btn2Action:'abrirCompartirSeleccion("presupuestos")',btn2Class:'btn'},
   glam:{title:'Panel GLAM',btnLabel:'Nueva orden GLAM',btnAction:'openGlamOrden()',btnClass:'btn-glam'},
+  'glam-compras':{title:'Comprar en GLAM',btnLabel:'',btnAction:'',btnClass:'btn-glam'},
   'glam-remitos':{title:'Remitos GLAM',btnLabel:'Nueva visita',btnAction:'openRemitoModal()',btnClass:'btn-glam'},
   padel:{title:'Padel — Reparaciones',btnLabel:'Nueva reparación',btnAction:'openPadelModal()',btnClass:''},
   'padel-clientes':{title:'Padel — Clientes',btnLabel:'Nuevo cliente',btnAction:'openPadelClienteModal()',btnClass:''}
@@ -1246,7 +1265,7 @@ async function saveAll(){
   if(!db){ind.className='save-indicator';ind.innerHTML='<i class="ti ti-cloud-off"></i> Sin conexión';return;}
   ind.className='save-indicator saving';ind.innerHTML='<i class="ti ti-loader"></i> Guardando...';
   try{
-    await db.collection('taller').doc(DB_DOC).set({ordenes,clientes,stock,presupuestos,fabricaciones,remitos,ordenCounter,presupuestoCounter,fabCounter,remitoCounter,categorias,marcas,trabajos,trabajosCounter,trabajosFecha,padelClientes,padelReps,padelRepCounter});
+    await db.collection('taller').doc(DB_DOC).set({ordenes,clientes,stock,presupuestos,fabricaciones,remitos,ordenCounter,presupuestoCounter,fabCounter,remitoCounter,categorias,marcas,trabajos,trabajosCounter,trabajosFecha,padelClientes,padelReps,padelRepCounter,glamCompras});
     ind.className='save-indicator saved';ind.innerHTML='<i class="ti ti-check"></i> Datos guardados';
   }catch(e){
     console.error(e);
@@ -1273,6 +1292,7 @@ async function loadAll(){
       if(d.padelClientes)padelClientes=d.padelClientes;
       if(d.padelReps)padelReps=d.padelReps;
       if(d.padelRepCounter)padelRepCounter=d.padelRepCounter;
+      if(d.glamCompras)glamCompras=d.glamCompras;
     }
   }catch(e){console.error('Error cargando datos:',e);}
   renderAll();
@@ -1286,7 +1306,7 @@ async function loadAll(){
   },400);
 }
 
-function renderAll(){renderOrdenes();renderFab();renderClientes();renderStock();renderTrabajos();renderPresupuestos();renderGlam();renderRemitos();renderPadelReps();renderPadelClientes();}
+function renderAll(){renderOrdenes();renderFab();renderClientes();renderStock();renderTrabajos();renderPresupuestos();renderGlam();renderGlamCompras();renderRemitos();renderPadelReps();renderPadelClientes();}
 
 function showSection(s){
   document.getElementById('section-'+currentSection).classList.add('section-hidden');
@@ -2213,7 +2233,50 @@ function deletePadelCliente(i){
   });
 }
 
-// NUEVO MÓDULO REMITOS GLAM
+// COMPRAS GLAM
+let glamCompras=[];
+
+function addGlamCompra(){
+  const desc=document.getElementById('glam-compra-desc').value.trim();
+  if(!desc){alert('Ingresá el producto.');return;}
+  const qty=parseInt(document.getElementById('glam-compra-qty').value)||1;
+  glamCompras.push({desc,qty});
+  document.getElementById('glam-compra-desc').value='';
+  document.getElementById('glam-compra-qty').value=1;
+  renderGlamCompras();
+  scheduleSave();
+}
+
+function removeGlamCompra(i){
+  glamCompras.splice(i,1);
+  renderGlamCompras();
+  scheduleSave();
+}
+
+function borrarTodasCompras(){
+  confirmar('¿Borrar toda la lista de compras?','Esta acción no se puede deshacer.',()=>{
+    glamCompras=[];
+    renderGlamCompras();
+    scheduleSave();
+  });
+}
+
+function renderGlamCompras(){
+  const el=document.getElementById('glam-compras-lista');
+  if(!el)return;
+  if(!glamCompras.length){
+    el.innerHTML='<p style="font-size:13px;color:var(--text-muted);font-style:italic;padding:8px 1rem;">Sin productos en la lista.</p>';
+    return;
+  }
+  el.innerHTML=glamCompras.map((c,i)=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 1rem;border-bottom:0.5px solid var(--border-light);">
+      <div style="flex:1;">
+        <span style="font-size:13px;font-weight:500;color:var(--text-dark);">${c.desc}</span>
+        ${c.qty>1?`<span style="font-size:12px;color:var(--text-muted);margin-left:6px;">× ${c.qty}</span>`:''}
+      </div>
+      <button class="action-btn" onclick="removeGlamCompra(${i})" style="color:#C0392B;"><i class="ti ti-trash"></i></button>
+    </div>`).join('');
+}
 let grOrdenes=[]; // órdenes seleccionadas para esta visita
 let grPadelReps=[]; // reparaciones padel GLAM para esta visita
 let grCompras=[]; // compras en GLAM
@@ -2223,11 +2286,9 @@ function initRemitoGlam(){
   grOrdenes=[];
   grPadelReps=[];
   grCompras=[];
-  // Cargar automáticamente órdenes GLAM activas
   ordenes.filter(o=>o.origen==='glam'&&o.estado!=='Cobrado'&&o.estado!=='Entregado').forEach(o=>{
     if(!grOrdenes.find(id=>id===o.id))grOrdenes.push(o.id);
   });
-  // Cargar automáticamente reparaciones padel GLAM activas
   padelReps.filter(r=>r.origen==='glam'&&r.estado!=='Cobrado'&&r.estado!=='Entregado').forEach(r=>{
     if(!grPadelReps.find(id=>id===r.id))grPadelReps.push(r.id);
   });
@@ -2235,6 +2296,22 @@ function initRemitoGlam(){
   renderGrOrdenes();
   renderGrCompras();
   actualizarLiquidacion();
+  // Mostrar lista de compras pendientes editable en remito
+  const comprasRemito=document.getElementById('gr-compras-pendientes-remito');
+  if(comprasRemito){
+    if(glamCompras.length){
+      comprasRemito.innerHTML=glamCompras.map((c,i)=>`
+        <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid var(--border-light);">
+          <span style="flex:1;font-size:13px;color:var(--text-dark);">${c.desc}${c.qty>1?' × '+c.qty:''}</span>
+          <button class="action-btn" onclick="removeGlamCompra(${i});initRemitoGlam();" style="color:#C0392B;"><i class="ti ti-trash"></i></button>
+        </div>`).join('');
+    } else {
+      comprasRemito.innerHTML='<p style="font-size:12px;color:var(--text-muted);font-style:italic;">Sin compras pendientes. <a href="#" onclick="showSection(\'glam-compras\');return false;" style="color:var(--glam);">Agregar →</a></p>';
+    }
+  }
+  // Mostrar lista de compras en el div viejo también (por compatibilidad)
+  const comprasEl=document.getElementById('gr-compras-pendientes');
+  if(comprasEl)comprasEl.style.display='none';
 }
 
 function poblarSelectorOrdenes(){
@@ -2431,11 +2508,11 @@ function generarRemitoGlam(){
   });
   const ordenesHtml=grOrdenes.map(id=>{
     const o=ordenes.find(o=>o.id===id);if(!o)return'';
-    const total=calcTotal(o.items||[]),cobrado=calcCobrado(o.cobros||[]),saldo=Math.max(0,total-cobrado);
-    return`<tr><td style="padding:7px 10px;border-bottom:0.5px solid #EDE3CE;font-size:13px;">${o.instrumento}${o.marca?' ('+o.marca+')':''}</td><td style="padding:7px 10px;border-bottom:0.5px solid #EDE3CE;font-size:13px;">${o.cliente}</td><td style="padding:7px 10px;border-bottom:0.5px solid #EDE3CE;font-size:13px;">${o.estado}</td><td style="padding:7px 10px;border-bottom:0.5px solid #EDE3CE;font-size:13px;font-weight:500;color:${saldo>0?'#C0392B':'#2A5A2A'};">${saldo>0?'$'+saldo.toLocaleString('es-AR'):'—'}</td></tr>`;
+    const total=calcTotal(o.items||[]),cobrado=calcCobrado(o.cobros||[]),saldoO=Math.max(0,total-cobrado);
+    return`<tr><td style="padding:7px 10px;border-bottom:0.5px solid #EDE3CE;font-size:13px;">${o.instrumento}${o.marca?' ('+o.marca+')':''}</td><td style="padding:7px 10px;border-bottom:0.5px solid #EDE3CE;font-size:13px;">${o.cliente}</td><td style="padding:7px 10px;border-bottom:0.5px solid #EDE3CE;font-size:13px;">${o.estado}</td><td style="padding:7px 10px;border-bottom:0.5px solid #EDE3CE;font-size:13px;font-weight:500;color:${saldoO>0?'#C0392B':'#2A5A2A'};">${saldoO>0?'$'+saldoO.toLocaleString('es-AR'):'—'}</td></tr>`;
   }).join('');
   const stockHtml=stockItems.map(s=>`<tr><td style="padding:6px 10px;border-bottom:0.5px solid #EDE3CE;font-size:13px;">${s.desc}</td><td style="padding:6px 10px;border-bottom:0.5px solid #EDE3CE;font-size:13px;font-weight:500;">${s.qty} u.</td></tr>`).join('');
-  const comprasHtml=grCompras.map(c=>`<tr><td style="padding:6px 10px;border-bottom:0.5px solid #EDE3CE;font-size:13px;">${c.nombre}</td><td style="padding:6px 10px;border-bottom:0.5px solid #EDE3CE;font-size:13px;font-weight:500;">${c.qty} u.</td></tr>`).join('');
+  const comprasHtml=glamCompras.map(c=>`<tr><td style="padding:6px 10px;border-bottom:0.5px solid #EDE3CE;font-size:13px;">${c.desc}</td><td style="padding:6px 10px;border-bottom:0.5px solid #EDE3CE;font-size:13px;font-weight:500;">${c.qty} u.</td></tr>`).join('');
   const ventana=window.open('','_blank');
   ventana.document.write(`<html><head><title>Remito GLAM ${fecha}</title>
   <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
@@ -2449,7 +2526,7 @@ function generarRemitoGlam(){
     <table><thead><tr><th>Instrumento</th><th>Cliente</th><th>Estado</th><th>Saldo</th></tr></thead><tbody>${ordenesHtml}</tbody></table>
   </div>
   ${stockItems.length?`<div class="section"><div class="section-title">Stock a reponer</div><table><thead><tr><th>Material</th><th>Cantidad</th></tr></thead><tbody>${stockHtml}</tbody></table></div>`:''}
-  ${grCompras.length?`<div class="section"><div class="section-title">Compras en GLAM</div><table><thead><tr><th>Producto</th><th>Cantidad</th></tr></thead><tbody>${comprasHtml}</tbody></table></div>`:''}
+  ${glamCompras.length?`<div class="section"><div class="section-title">Lista de compras</div><table><thead><tr><th>Producto</th><th>Cantidad</th></tr></thead><tbody>${comprasHtml}</tbody></table></div>`:''}
   <div class="section"><div class="section-title">Liquidación</div>
     <div class="liq-row"><span>Comisión a pagar (10% mano de obra)</span><span style="color:#7B3FA0;font-weight:500;">$${comision.toLocaleString('es-AR',{maximumFractionDigits:0})}</span></div>
     <div class="liq-row"><span>Combustible a cobrar</span><span style="color:#2A5A2A;font-weight:500;">$${combustible.toLocaleString('es-AR')}</span></div>
@@ -2458,6 +2535,43 @@ function generarRemitoGlam(){
   <script>window.onload=()=>{window.print();}<\/script>
   </body></html>`);
   ventana.document.close();
+}
+
+async function compartirRemito(){
+  const fecha=document.getElementById('gr-fecha').value||new Date().toLocaleDateString('es-AR');
+  const comisionGuitarras=grOrdenes.reduce((s,id)=>{
+    const o=ordenes.find(o=>o.id===id);if(!o||o.origen!=='glam')return s;
+    const mano=(o.items||[]).filter(it=>it.tipo==='trabajo').reduce((a,it)=>a+it.qty*it.precio,0);
+    return s+Math.round(mano*0.1);
+  },0);
+  const comisionPadel=grPadelReps.reduce((s,id)=>{
+    const r=padelReps.find(r=>r.id===id);if(!r||r.origen!=='glam')return s;
+    return s+Math.round(r.total*0.1);
+  },0);
+  const comision=comisionGuitarras+comisionPadel;
+  const combustible=parseFloat(document.getElementById('gr-combustible').value)||0;
+  const saldo=combustible-comision;
+  let texto=`🎸 *Visita a GLAM — ${fecha}*\n\n`;
+  if(grOrdenes.length){
+    texto+=`*Instrumentos:*\n`;
+    grOrdenes.forEach(id=>{
+      const o=ordenes.find(o=>o.id===id);if(!o)return;
+      const total=calcTotal(o.items||[]),cobrado=calcCobrado(o.cobros||[]),saldoO=Math.max(0,total-cobrado);
+      texto+=`• ${o.instrumento}${o.marca?' ('+o.marca+')':''} — ${o.cliente}${saldoO>0?' — Saldo: $'+saldoO.toLocaleString('es-AR'):''}\n`;
+    });
+    texto+='\n';
+  }
+  if(glamCompras.length){
+    texto+=`*Lista de compras:*\n`;
+    glamCompras.forEach((c,i)=>{texto+=`${i+1}. ${c.desc}${c.qty>1?' × '+c.qty:''}\n`;});
+    texto+='\n';
+  }
+  texto+=`*Liquidación:*\n`;
+  texto+=`Comisión a pagar: $${comision.toLocaleString('es-AR',{maximumFractionDigits:0})}\n`;
+  texto+=`Combustible a cobrar: $${combustible.toLocaleString('es-AR')}\n`;
+  texto+=`${saldo>=0?'GLAM me debe':'Les debo a GLAM'}: *$${Math.abs(saldo).toLocaleString('es-AR',{maximumFractionDigits:0})}*`;
+  if(navigator.share){try{await navigator.share({title:`Remito GLAM ${fecha}`,text:texto});}catch(e){}}
+  else{navigator.clipboard.writeText(texto).then(()=>alert('Texto copiado al portapapeles.'));}
 }
 
 function saveRemito(){
@@ -3750,10 +3864,39 @@ function renderRemitos(){
       <td style="display:flex;gap:3px;">
         <button class="action-btn" onclick="editarRemitoGuardado(${r.id})" title="Editar"><i class="ti ti-edit"></i></button>
         <button class="action-btn" onclick="pdfRemitoGuardado(${r.id})" title="Generar PDF" style="color:var(--wood-mid);"><i class="ti ti-file-download"></i></button>
+        <button class="action-btn" onclick="compartirRemitoGuardado(${r.id})" title="Compartir" style="color:#25D366;"><i class="ti ti-brand-whatsapp"></i></button>
         <button class="action-btn" onclick="deleteRemito(${r.id})"><i class="ti ti-trash"></i></button>
       </td>
     </tr>`;
   }).join('');
+}
+
+async function compartirRemitoGuardado(id){
+  const r=remitos.find(r=>r.id===id);if(!r)return;
+  const comision=r.comision||0;
+  const combustible=r.combustible||0;
+  const saldo=r.saldo!==undefined?r.saldo:combustible-comision;
+  let texto=`🎸 *Visita a GLAM — ${r.fecha}*\n\n`;
+  if(r.ordenIds&&r.ordenIds.length){
+    texto+=`*Instrumentos:*\n`;
+    r.ordenIds.forEach(oid=>{
+      const o=ordenes.find(o=>o.id===oid);if(!o)return;
+      const total=calcTotal(o.items||[]),cobrado=calcCobrado(o.cobros||[]),saldoO=Math.max(0,total-cobrado);
+      texto+=`• ${o.instrumento}${o.marca?' ('+o.marca+')':''} — ${o.cliente}${saldoO>0?' — Saldo: $'+saldoO.toLocaleString('es-AR'):''}\n`;
+    });
+    texto+='\n';
+  }
+  if(r.compras&&r.compras.length){
+    texto+=`*Lista de compras:*\n`;
+    r.compras.forEach((c,i)=>{texto+=`${i+1}. ${c.desc||c.nombre||''}${c.qty>1?' × '+c.qty:''}\n`;});
+    texto+='\n';
+  }
+  texto+=`*Liquidación:*\n`;
+  texto+=`Comisión a pagar: $${comision.toLocaleString('es-AR',{maximumFractionDigits:0})}\n`;
+  texto+=`Combustible a cobrar: $${combustible.toLocaleString('es-AR')}\n`;
+  texto+=`${saldo>=0?'GLAM me debe':'Les debo a GLAM'}: *$${Math.abs(saldo).toLocaleString('es-AR',{maximumFractionDigits:0})}*`;
+  if(navigator.share){try{await navigator.share({title:`Remito GLAM ${r.fecha}`,text:texto});}catch(e){}}
+  else{navigator.clipboard.writeText(texto).then(()=>alert('Texto copiado al portapapeles.'));}
 }
 
 function editarRemitoGuardado(id){
