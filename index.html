@@ -3888,7 +3888,10 @@ async function compartirRemitoGuardado(id){
   }
   if(r.compras&&r.compras.length){
     texto+=`*Lista de compras:*\n`;
-    r.compras.forEach((c,i)=>{texto+=`${i+1}. ${c.desc||c.nombre||''}${c.qty>1?' × '+c.qty:''}\n`;});
+    r.compras.forEach((c,i)=>{
+      const nombre=c.desc||c.nombre||'';
+      texto+=`${i+1}. ${nombre}${c.qty>1?' × '+c.qty:''}\n`;
+    });
     texto+='\n';
   }
   texto+=`*Liquidación:*\n`;
