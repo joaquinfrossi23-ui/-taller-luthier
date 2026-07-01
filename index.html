@@ -101,6 +101,8 @@ tr:hover td{background:rgba(196,149,106,0.04);}
 .badge-unpaid{background:#F5EDD8;color:#7A4F1A;border:0.5px solid #D4A853;cursor:pointer;}
 .badge-lowstock{background:#FDE8E8;color:#7A1A1A;border:0.5px solid #E08080;}
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(28,15,5,0.5);z-index:100;align-items:center;justify-content:center;}
+#modal-cliente{z-index:200;}
+#modal-padel-cliente{z-index:200;}
 #modal-confirmar{z-index:200;}
 .modal-bg.open{display:flex;}
 .modal{background:var(--parchment);border-radius:12px;border:0.5px solid var(--border);width:520px;max-height:90vh;overflow-y:auto;}
@@ -313,16 +315,19 @@ tr:hover td{background:rgba(196,149,106,0.04);}
 }
 
 /* --- HORIZONTAL solamente --- */
-@media (max-width:900px) and (orientation:landscape){
-  .sidebar{height:44px;}
-  .nav-item{padding:4px 10px 2px;min-width:48px;}
-  .nav-item i{font-size:16px;}
+@media (max-width:768px) and (orientation:landscape){
+  .sidebar{height:40px;position:fixed;}
+  .nav-item{padding:3px 8px 2px;min-width:44px;}
+  .nav-item i{font-size:15px;}
   .nav-label{display:none;}
-  .main-content{padding-bottom:52px;}
+  .main-content{padding-bottom:48px;padding-top:0;}
+  .topbar{padding:3px 0.5rem;}
   .topbar h2{font-size:12px;}
-  .topbar .btn{font-size:10px;padding:4px 8px;}
-  .modal,.modal-wide{max-height:94vh;}
-  .modal-body{max-height:76vh;}
+  .topbar .btn{font-size:10px;padding:3px 8px;}
+  .modal,.modal-wide{max-height:92vh;border-radius:10px 10px 0 0;}
+  .modal-body{max-height:72vh;}
+  .row2,.row3{grid-template-columns:1fr 1fr;}
+  .stats-grid-4{grid-template-columns:repeat(4,1fr);}
 }
 /* TABLETS */
 @media (min-width:769px) and (max-width:1024px){
@@ -1337,6 +1342,14 @@ function showSection(s){
   }
   // Inicializar remito GLAM al entrar a esa sección
   if(s==='glam-remitos')initRemitoGlam();
+  if(s==='presupuestos'){
+    setTimeout(()=>{
+      const card=document.querySelector('#section-presupuestos .card');
+      if(card)card.scrollTop=card.scrollHeight;
+      const main=document.querySelector('.main-content');
+      if(main)main.scrollTop=main.scrollHeight;
+    },200);
+  }
   // Scroll al final solo al entrar
   if(s==='ordenes'){
     _scrollOrdenesAlFinal=true;
