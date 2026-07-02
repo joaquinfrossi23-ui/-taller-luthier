@@ -208,7 +208,7 @@ tr:hover td{background:rgba(196,149,106,0.04);}
 .lightbox img{max-width:90vw;max-height:85vh;border-radius:8px;}
 .lightbox-close{position:absolute;top:20px;right:24px;background:none;border:none;color:#fff;font-size:24px;cursor:pointer;}
 /* ===== CELULAR (vertical y horizontal) ===== */
-@media (max-width:768px){
+@media (max-width:768px), (max-height:500px) and (pointer:coarse){
 
   /* --- Layout --- */
   .app{flex-direction:column;}
@@ -216,7 +216,7 @@ tr:hover td{background:rgba(196,149,106,0.04);}
 
   /* --- Sidebar abajo como app --- */
   .sidebar{
-    position:fixed;bottom:0;left:0;right:0;z-index:100;
+    position:fixed;bottom:0;left:0;right:0;top:auto;z-index:100;
     width:100%;height:56px;
     flex-direction:row;padding:0;
     overflow-x:auto;overflow-y:hidden;
@@ -255,7 +255,7 @@ tr:hover td{background:rgba(196,149,106,0.04);}
   /* --- Contenido principal --- */
   .main-content{
     padding:0.5rem;
-    padding-bottom:72px;
+    padding-bottom:85px;
     overflow-y:auto;overflow-x:hidden;
     -webkit-overflow-scrolling:touch;
   }
@@ -312,22 +312,24 @@ tr:hover td{background:rgba(196,149,106,0.04);}
   /* --- Forms --- */
   .row2,.row3{grid-template-columns:1fr;}
   .item-add-grid{grid-template-columns:1fr auto auto;}
+
+  /* --- Secciones con max-height fijo en compu: liberar en celular --- */
+  #section-ordenes .card,#section-glam .card{max-height:none;}
 }
 
-/* --- HORIZONTAL solamente --- */
-@media (max-width:768px) and (orientation:landscape){
-  .sidebar{height:40px;position:fixed;}
-  .nav-item{padding:3px 8px 2px;min-width:44px;}
+/* --- HORIZONTAL solamente (pantalla baja + táctil) --- */
+@media (max-height:500px) and (pointer:coarse){
+  .sidebar{height:38px;}
+  .nav-item{padding:2px 8px;min-width:44px;}
   .nav-item i{font-size:15px;}
   .nav-label{display:none;}
-  .main-content{padding-bottom:48px;padding-top:0;}
-  .topbar{padding:3px 0.5rem;}
+  .main-content{padding-bottom:46px;}
+  .topbar{padding:2px 0.5rem;}
   .topbar h2{font-size:12px;}
   .topbar .btn{font-size:10px;padding:3px 8px;}
   .modal,.modal-wide{max-height:92vh;border-radius:10px 10px 0 0;}
-  .modal-body{max-height:72vh;}
+  .modal-body{max-height:70vh;}
   .row2,.row3{grid-template-columns:1fr 1fr;}
-  .stats-grid-4{grid-template-columns:repeat(4,1fr);}
 }
 /* TABLETS */
 @media (min-width:769px) and (max-width:1024px){
